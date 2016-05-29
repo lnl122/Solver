@@ -16,7 +16,7 @@ namespace Solver
     {
         public static Form Mainform;       // форму объявим глобально
         public static TabControl Tabs;
-        public static TabPage MainTab;
+
         public static string mainform_caption = "Solver..";     // имя формы
 
         public static int mainform_border = 5;      // расстояния между элементами форм, константа
@@ -137,6 +137,7 @@ namespace Solver
             // все проверки пройдены
             return true;
         }
+
         public struct dEnvInfo
         {
             public string system_name;
@@ -152,48 +153,98 @@ namespace Solver
             public string temp_path;
             //public string registry_path;
         }
+        public struct GameSt
+        {
+            public string username;
+            public string password;
+            public string userid;
+            //List<string> all_games;
+            public string game_id;
+            public string domain;
+        }
+        public struct MainTabSt
+        {
+            public TabPage MainTab;
+            public Button BtnUser;
+            public Button BtnGame;
+            public ListBox LvlList;
+            public TextBox LvlText;
+        }
+
         static dEnvInfo Env = new dEnvInfo();
-        static public StreamWriter logfile;
-        /*public struct dGame
-        {
-            string username;
-            string password;
-            List<string> all_games;
-            string game_id;
-        }*/
-        public static void MainFormChangeSize(object sender, EventArgs e)
+        public static StreamWriter logfile;
+        static GameSt dGame = new GameSt();
+        static MainTabSt GameTab = new MainTabSt();
+
+        public static void Event_MainFormChangeSize(object sender, EventArgs e)
         {
             Tabs.Top = mainform_border;
             Tabs.Left = mainform_border;
             Tabs.Width = Mainform.Width - 5 * mainform_border;
             Tabs.Height = Mainform.Height - 10 * mainform_border;
+            GameTab.MainTab.Left = mainform_border;
+            GameTab.MainTab.Top = mainform_border;
+            GameTab.MainTab.Width = Tabs.Width - 3 * mainform_border;
+            GameTab.MainTab.Height = Tabs.Height - 3 * mainform_border - 11; // почему 11? хз но работает корректно
+            GameTab.BtnUser.Left = mainform_border;
+            GameTab.BtnUser.Top = mainform_border;
+            GameTab.BtnUser.Width = 20 * mainform_border;
+            GameTab.BtnUser.Height = 5 * mainform_border;
+            GameTab.BtnGame.Left = GameTab.BtnUser.Right + mainform_border;
+            GameTab.BtnGame.Top = GameTab.BtnUser.Top;
+            GameTab.BtnGame.Width = GameTab.BtnUser.Width;
+            GameTab.BtnGame.Height = GameTab.BtnUser.Height;
+            GameTab.LvlList.Top = GameTab.BtnUser.Bottom + mainform_border;
+            GameTab.LvlList.Left = mainform_border;
+            GameTab.LvlList.Width = GameTab.MainTab.Width / 4;
+            GameTab.LvlList.Height = GameTab.MainTab.Height / 2;
+            GameTab.LvlText.Top = GameTab.LvlList.Top;
+            GameTab.LvlText.Left = GameTab.LvlList.Right + mainform_border;
+            GameTab.LvlText.Width = GameTab.MainTab.Width - GameTab.LvlList.Width - 3 * mainform_border;
+            GameTab.LvlText.Height = GameTab.MainTab.Height - GameTab.BtnUser.Height - 3 * mainform_border;
         }
-        public static void q1_resize(object sender, EventArgs e)
+        public static void Event_BtnUserClick(object sender, EventArgs e)
         {
-            Tabs.Top = mainform_border;
-            Tabs.Left = mainform_border;
-            Tabs.Width = Mainform.Width - 5 * mainform_border;
-            Tabs.Height = Mainform.Height - 10 * mainform_border;
+            // нужная ветка реестра д.б. в HKCU - //[HKEY_CURRENT_USER\Software\lnl122\solver] //"user"="username" //"pass"="userpassword"
+
+            // обратимся к реестру, есть ли там записи о последнем юзере, если есть - прочтем их
+            // предложим ввести юзера и пароль, дефолтные значения - то, что было в реестре, или же пусто
+            // если отказались вводить имя/пасс - выходим
+            // попробуем авторизоваться на гейм.ен.цх с указанной УЗ
+            // если не успешно - вернемся в вводу пользователя
+            // если авторизовались успешно - записываем данные в реестр, меняем заголовок программы, делаем доступной кнорпку выбора игры
         }
-        private static void CreateMainForm()
+    private static void CreateMainForm()
         {
             Mainform = new Form();
             Mainform.Size = new Size(System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width / 2, System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height / 2);
             Mainform.Text = mainform_caption;
             Mainform.StartPosition = FormStartPosition.CenterScreen;
             Mainform.AutoSizeMode = AutoSizeMode.GrowOnly;
-            Mainform.SizeChanged += new EventHandler(MainFormChangeSize);
+            Mainform.SizeChanged += new EventHandler(Event_MainFormChangeSize);
             Tabs = new TabControl();
-            MainFormChangeSize(null, null);
             Mainform.Controls.Add(Tabs);
-            MainTab = new TabPage();
-            MainTab.Text = "Игра";
-            Label q1 = new Label();
-            q1.Text = "center";
-            MainTab.Controls.Add(q1);
-            Tabs.Controls.Add(MainTab);
-
-
+            GameTab.MainTab = new TabPage();
+            GameTab.MainTab.Text = "Игра";
+            Tabs.Controls.Add(GameTab.MainTab);
+            GameTab.BtnUser = new Button();
+            GameTab.BtnUser.Text = "Логон в EN";
+            GameTab.BtnUser.Click += new EventHandler(Event_BtnUserClick);
+            GameTab.MainTab.Controls.Add(GameTab.BtnUser);
+            GameTab.BtnGame = new Button();
+            GameTab.BtnGame.Text = "Выбор игры";
+            GameTab.MainTab.Controls.Add(GameTab.BtnGame);
+            GameTab.LvlList = new ListBox();
+            GameTab.LvlList.Items.Add("-: текст уровня пользователя");
+            GameTab.MainTab.Controls.Add(GameTab.LvlList);
+            GameTab.LvlText = new TextBox();
+            GameTab.LvlText.Text = "Для пользовательского уровня укажите текст задания, или ссылки на картинки\r\n\r\nДля выбора задания игры необходимо выбрать уровень в списке слева\r\n";
+            GameTab.LvlText.AcceptsReturn = true;
+            GameTab.LvlText.AcceptsTab = false;
+            GameTab.LvlText.Multiline = true;
+            GameTab.LvlText.ScrollBars = ScrollBars.Both;
+            GameTab.MainTab.Controls.Add(GameTab.LvlText);
+            Event_MainFormChangeSize(null, null);
         }
         static void Main(string[] args)
         {
