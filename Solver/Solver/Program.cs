@@ -6,6 +6,7 @@ using Microsoft.Office.Interop.Word;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Net;
@@ -161,6 +162,9 @@ namespace Solver
             //List<string> all_games;
             public string game_id;
             public string domain;
+            public CookieCollection game_cColl;
+            public CookieContainer game_cCont;
+            public string game_cHead;
         }
         public struct MainTabSt
         {
@@ -176,6 +180,63 @@ namespace Solver
         static GameSt dGame = new GameSt();
         static MainTabSt GameTab = new MainTabSt();
 
+
+        public static string Game_Logon(string url1, string name, string pass)
+        {
+            string formParams = string.Format("Login={0}&Password={1}", name, pass);
+            string cookieHeader = "";
+            var cookies = new CookieContainer();
+            dGame.game_cCont = cookies;
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url1);
+            req.CookieContainer = cookies;
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.Method = "POST";
+            byte[] bytes = Encoding.UTF8.GetBytes(formParams);
+            req.ContentLength = bytes.Length;
+            using (Stream os = req.GetRequestStream()) { os.Write(bytes, 0, bytes.Length); }
+            HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
+            cookieHeader = resp.Headers["Set-cookie"];
+            dGame.game_cHead = cookieHeader;
+            string pageSource = "";
+            using (StreamReader sr = new StreamReader(resp.GetResponseStream())) { pageSource = sr.ReadToEnd(); }
+            return pageSource;
+        }
+        public static string parse_html_body(string g)
+        {
+            g = g.Substring(g.IndexOf("<body>")+6).Replace("</body>", "").Replace("</html>", "");
+            string[,] tags = {
+                { "<script"  , "<noscript>" , "<style>" , "onmousedown=\"", "value=\"", "data-jiis=\"", "data-ved=\"", "aria-label=\"", "jsl=\"", "id=\"", "data-jibp=\"", "role=\"", "jsaction=\"", "onload=\"", "alt=\"", "title=\"", "width=\"", "height=\"", "data-deferred=\"", "aria-haspopup=\"", "aria-expanded=\"", "<input", "tabindex=\"", "tag=\"", "aria-selected=\"", "name=\"", "type=\"", "action=\"", "method=\"", "autocomplete=\"", "aria-expanded=\"", "aria-grabbed=\"", "data-bucket=\"", "aria-level=\"", "aria-hidden=\"", "aria-dropeffect=\"", "topmargin=\"" , "margin=\"", "data-async-context=\"", "valign=\"", "data-async-context=\"", "unselectable=\"", "<!--", "ID=\"", "style=\"" , "class=\"" , "//<![CDATA[" , "border=\"" , "cellspacing=\"" , "cellpadding=\"" , "target=\"" , "colspan=\"" , "onclick=\"" , "align=\"" , "color=\"" , "nowrap=\"" , "vspace=\"" },
+                { "</script>", "</noscript>", "</style>", "\""            , "\""      , "\""          , "\""         , "\""           , "\""    , "\""   , "\""          , "\""     , "\""         , "\""       , "\""    , "\""      ,"\""       , "\""       , "\""              , "\""              , "\""              , ">"     , "\""         , "\""    , "\""              , "\""     , "\""     , "\""       , "\""       , "\""             , "\""              , "\""             , "\""            , "\""           , "\""            , "\""                , "\""           , "\""       , "\""                   , "\""       , "\""                   , "\""             , "-->" , "\""   , "\""       , "\""       , "//]]>"       , "\""        , "\""             , "\""             , "\""        , "\""         , "\""         , "\""       , "\""       , "\""        , "\""        }
+            };
+            int tags_len = tags.Length / 2;
+            bool fl = true;
+            for (int i = 0; i < tags_len; i++)
+            {
+                fl = true;
+                while (fl)
+                {
+                    fl = false;
+                    int i1 = g.IndexOf(tags[0, i]);
+                    if (i1 != -1)
+                    {
+                        string g2 = g.Substring(i1 + tags[0, i].Length);
+                        int i2 = g2.IndexOf(tags[1, i]);
+                        g = g.Substring(0, i1) + g2.Substring(i2 + tags[1, i].Length);
+                        fl = true;
+
+                        if(g.IndexOf("исси") == -1)
+                        {
+                            g = g;
+                        }
+                    }
+                }
+            }
+            g = g.Trim().Replace("\t"," ").Replace("&nbsp;", " ").Replace("<br/>", "\r\n").Replace("<b>", " ").Replace("</b>", " ").Replace("<u>", " ").Replace("</u>", " ").Replace("<i>", " ").Replace("</i>", " ").Trim();
+            g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" \r\n", "\r\n").Replace("\r\n ", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace(" >", ">").Replace("<br/>", "\r\n").Replace("<br />", "").Replace("\r\n\r\n", "\r\n");
+            g = g.Replace("<div>", "").Replace("</div>", "").Replace("<span>", "").Replace("</span>", "");
+            g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" \r\n", "\r\n").Replace("\r\n ", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace(" >", ">").Replace("<br/>", "\r\n").Replace("<br />", "").Replace("\r\n\r\n", "\r\n");
+            return g;
+        }
         public static void Event_MainFormChangeSize(object sender, EventArgs e)
         {
             Tabs.Top = mainform_border;
@@ -206,15 +267,146 @@ namespace Solver
         public static void Event_BtnUserClick(object sender, EventArgs e)
         {
             // нужная ветка реестра д.б. в HKCU - //[HKEY_CURRENT_USER\Software\lnl122\solver] //"user"="username" //"pass"="userpassword"
-
             // обратимся к реестру, есть ли там записи о последнем юзере, если есть - прочтем их
+            RegistryKey rk = Registry.CurrentUser;
+            RegistryKey rks = rk.OpenSubKey("Software", true); rk.Close();
+            RegistryKey rksl = rks.OpenSubKey("lnl122", true); if (rksl == null) { rksl = rks.CreateSubKey("lnl122"); } rks.Close();
+            RegistryKey rksls = rksl.OpenSubKey("Solver", true); if (rksls == null) { rksls = rksl.CreateSubKey("Solver"); } rksl.Close();
+            string user = "";
+            string pass = "";
+            var r_user = rksls.GetValue("user");
+            if (r_user == null) { rksls.SetValue("user",""); user = ""; } else { user = r_user.ToString(); }
+            var r_pass = rksls.GetValue("pass");
+            if (r_pass == null) { rksls.SetValue("pass", ""); pass = ""; } else { pass = r_pass.ToString(); }
+            rksls.Close();
+
+            // форма для ввода данных
+            Form Login = new Form();
+            Login.Text = "Введите ник игрока и его пароль..";
+            Login.StartPosition = FormStartPosition.CenterScreen;
+            Login.Width = 35 * mainform_border;
+            Login.Height = 25 * mainform_border;
+            Login.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            Login.AutoSize = true;
+            Label lu = new Label();
+            lu.Text = "ник:";
+            lu.Top = 2 * mainform_border;
+            lu.Left = mainform_border;
+            lu.Width = 10 * mainform_border;
+            Login.Controls.Add(lu);
+            Label lp = new Label();
+            lp.Text = "пароль:";
+            lp.Top = lu.Bottom + mainform_border;
+            lp.Left = mainform_border;
+            lp.Width = lu.Width;
+            Login.Controls.Add(lp);
+            TextBox tu = new TextBox();
+            tu.Text = user;
+            tu.Top = lu.Top;
+            tu.Left = lu.Right + mainform_border;
+            tu.Width = 3 * lu.Width;
+            Login.Controls.Add(tu);
+            TextBox tp = new TextBox();
+            tp.Text = pass;
+            tp.Top = lp.Top;
+            tp.Left = tu.Left;
+            tp.Width = tu.Width;
+            Login.Controls.Add(tp);
+            Button blok = new Button();
+            blok.Text = "выполнить вход";
+            blok.Top = lp.Bottom + 2 * mainform_border;
+            blok.Left = lu.Left;
+            blok.Width = tu.Right - 1 * mainform_border;
+            blok.DialogResult = DialogResult.OK;
+            Login.AcceptButton = blok;
+            Login.Controls.Add(blok);
+
             // предложим ввести юзера и пароль, дефолтные значения - то, что было в реестре, или же пусто
-            // если отказались вводить имя/пасс - выходим
-            // попробуем авторизоваться на гейм.ен.цх с указанной УЗ
-            // если не успешно - вернемся в вводу пользователя
-            // если авторизовались успешно - записываем данные в реестр, меняем заголовок программы, делаем доступной кнорпку выбора игры
+            bool fl = true;
+            while (fl)
+            {
+                if (Login.ShowDialog() == DialogResult.OK)
+                {
+                    // попробуем авторизоваться на гейм.ен.цх с указанной УЗ
+                    user = tu.Text;
+                    pass = tp.Text;
+                    Log("Пробуем выполнить вход на сайт для пользвоателя " + user);
+                    string pageSource = Game_Logon("http://game.en.cx/Login.aspx", user, pass);
+                    // если авторизовались успешно - записываем данные в реестр, меняем заголовок программы, делаем доступной кнорпку выбора игры
+                    if (pageSource.IndexOf("action=logout") != -1)
+                    {
+                        // обновить в реестре 
+                        RegistryKey rk2 = Registry.CurrentUser.OpenSubKey("Software\\lnl122\\Solver", true);
+                        rk2.SetValue("user", user);
+                        rk2.SetValue("pass", pass);
+                        rk2.Close();
+                        // включим кнопку игры
+                        GameTab.BtnGame.Enabled = true;
+                        GameTab.BtnUser.Enabled = false;
+                        // изменим заголовок
+                        Mainform.Text = mainform_caption + " / user: " + user;
+                        // запомним параметры игрока
+                        dGame.username = user;
+                        dGame.password = pass;
+                        pageSource = pageSource.Substring(pageSource.IndexOf(user));
+                        pageSource = pageSource.Substring(pageSource.IndexOf("(id"));
+                        pageSource = pageSource.Substring(pageSource.IndexOf(">")+1);
+                        dGame.userid = pageSource.Substring(0, pageSource.IndexOf("<"));
+                        // поставим флаг выхода
+                        fl = false;
+                        // в лог
+                        Log("Имя и пароль пользователя проверены, успешный логон для id=" + dGame.userid);
+                    }
+                    else
+                    {
+                        // если не успешно - вернемся в вводу пользователя
+                        Log("Неверные логин/пароль");
+                        MessageBox.Show("Неверные логин/пароль");
+                    }
+                }
+                else
+                {
+                    // если отказались вводить имя/пасс - выходим
+                    fl = false;
+                }
+            } // выход только если fl = false -- это или отказ польователя в диалоге, или если нажато ОК - корректная УЗ
         }
-    private static void CreateMainForm()
+        public static void Event_BtnGameClick(object sender, EventArgs e)
+        {
+            string url1 = "http://game.en.cx/UserDetails.aspx?zone=1&tab=1&uid=" + dGame.userid + "&page=1";
+            string cookieHeader = "";
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url1);
+            req.CookieContainer = dGame.game_cCont;
+            req.ContentType = "application/x-www-form-urlencoded";
+            HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
+            cookieHeader = resp.Headers["Set-cookie"];
+            dGame.game_cHead = cookieHeader;
+            string pageSource = "";
+            using (StreamReader sr = new StreamReader(resp.GetResponseStream())) { pageSource = sr.ReadToEnd(); }
+            string ps1 = parse_html_body(pageSource);
+            ps1 = ps1.Substring(ps1.IndexOf("Послужной список"));
+            ps1 = ps1.Substring(ps1.IndexOf("Игры"));
+            ps1 = ps1.Substring(ps1.IndexOf("Мозговой штурм"));
+            string[] ar1 = Regex.Split(ps1.Replace(" bg>", "").Replace("\r\n", " ").Replace("</tr> ", "").Replace("</td> ", ""), "<tr");
+            System.Collections.Generic.List<string> l1 = new System.Collections.Generic.List<string>();
+            System.Collections.Generic.List<string> l2 = new System.Collections.Generic.List<string>();
+            foreach (string s1 in ar1) { if (s1.IndexOf("/Teams/TeamDetails.aspx") != -1) { l1.Add(s1); } }
+            foreach(string s2 in l1)
+            {
+                string r1 = "";
+                string[] ar2 = Regex.Split(s2, "<td> ");
+                foreach (string s3 in ar2)
+                {
+                    string s4 = s3.TrimStart().TrimEnd().Trim();
+                    if (s4.Length <= 3) { continue; }
+                    if (s4.IndexOf("</a>") != -1) { s4 = s4.Substring(0, s4.IndexOf("</a>")).Replace("<a ", "").Replace(">", " | "); }
+                    r1 = r1 + s4 + " | ";
+                }
+                l2.Add(r1.Substring(0,r1.Length-3));
+            }
+            l1 = l1;
+        }
+        private static void CreateMainForm()
         {
             Mainform = new Form();
             Mainform.Size = new Size(System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width / 2, System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height / 2);
@@ -233,6 +425,8 @@ namespace Solver
             GameTab.MainTab.Controls.Add(GameTab.BtnUser);
             GameTab.BtnGame = new Button();
             GameTab.BtnGame.Text = "Выбор игры";
+            GameTab.BtnGame.Enabled = false;
+            GameTab.BtnGame.Click += new EventHandler(Event_BtnGameClick);
             GameTab.MainTab.Controls.Add(GameTab.BtnGame);
             GameTab.LvlList = new ListBox();
             GameTab.LvlList.Items.Add("-: текст уровня пользователя");
