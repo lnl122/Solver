@@ -139,6 +139,13 @@ namespace Solver
             return true;
         }
 
+        public static string[,] actions = {
+            { "Решать самостоятельно",      "manual" },
+            { "Расчленёнки",                "raschl" },
+            { "Картинки - только решить",   "picture"},
+            { "Картинки + вбить ответы",    "picture_answer"}
+            };
+
         public struct dEnvInfo
         {
             public string system_name;
@@ -159,12 +166,19 @@ namespace Solver
             public string username;
             public string password;
             public string userid;
-            //List<string> all_games;
             public string game_id;
-            public string domain;
-            public CookieCollection game_cColl;
+            public string game_domain;
+            //public CookieCollection game_cColl;
             public CookieContainer game_cCont;
             public string game_cHead;
+            public string[] g_names;
+            public string[] g_urls;
+            public int game_levels;
+            public TextBox tb;
+            public string[] level_name;
+            public string[] level_text;
+            public string[] level_full;
+            //public string[] level_pics;
         }
         public struct MainTabSt
         {
@@ -173,12 +187,14 @@ namespace Solver
             public Button BtnGame;
             public ListBox LvlList;
             public TextBox LvlText;
+            public ComboBox gChoice;
+            public Button BtnSolve;
         }
 
         static dEnvInfo Env = new dEnvInfo();
         public static StreamWriter logfile;
         static GameSt dGame = new GameSt();
-        static MainTabSt GameTab = new MainTabSt();
+        public static MainTabSt GameTab = new MainTabSt();
 
 
         public static string Game_Logon(string url1, string name, string pass)
@@ -223,11 +239,6 @@ namespace Solver
                         int i2 = g2.IndexOf(tags[1, i]);
                         g = g.Substring(0, i1) + g2.Substring(i2 + tags[1, i].Length);
                         fl = true;
-
-                        if(g.IndexOf("исси") == -1)
-                        {
-                            g = g;
-                        }
                     }
                 }
             }
@@ -236,6 +247,109 @@ namespace Solver
             g = g.Replace("<div>", "").Replace("</div>", "").Replace("<span>", "").Replace("</span>", "");
             g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" \r\n", "\r\n").Replace("\r\n ", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace(" >", ">").Replace("<br/>", "\r\n").Replace("<br />", "").Replace("\r\n\r\n", "\r\n");
             return g;
+        }
+        public static string get_game_page(string url)
+        {
+            string ps = "";
+            HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
+            //getRequest.Headers.Add("Accept-Language", "ru-ru");
+            //getRequest.Headers.Add("Content-Language", "ru-ru");
+            //getRequest.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
+            getRequest.CookieContainer = dGame.game_cCont;
+            WebResponse getResponse = getRequest.GetResponse();
+            using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+            {
+                ps = sr.ReadToEnd();
+            }
+            return ps;
+        }
+        public static string parse_level_text(string t1)
+        {
+            t1 = t1.Substring(t1.IndexOf("<ul class=\"section level\">"));
+            t1 = t1.Substring(t1.IndexOf("</ul>"));
+            t1 = t1.Replace("<br/>", "\r\n").Replace("<div class=\"spacer\"></div>", "").Replace("<h3 class=\"color_bonus\">", "").Replace("<!-- container -->", "").Replace("</body>", "").Replace("</html>", "").Replace("</ul><!--end level-->", "").Replace("<p>", "").Replace("</p>", "").Replace("<h3 class=\"color_correct\">", "").Replace("<h3>", "").Replace("</h3>", "");
+            string t2 = "";
+            int ii1 = 0;
+            int ii2 = 0;
+            bool fl = true;
+            while (fl)
+            {
+                fl = false;
+                ii1 = t1.IndexOf("<p"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
+                ii1 = t1.IndexOf("<span"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
+                ii1 = t1.IndexOf("<strong"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
+                ii1 = t1.IndexOf("<script"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf("</script>"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 9); }
+                ii1 = t1.IndexOf("<!--"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf("-->"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 3); }
+                ii1 = t1.IndexOf("//<![CDATA["); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf("//]]>"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 5); }
+                ii1 = t1.IndexOf("<h3"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
+                ii1 = t1.IndexOf("<div"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
+                ii1 = t1.IndexOf("<a"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
+            }
+            //<span class="color_sec">(completed, award 1 minute)</span>
+            t1 = t1.Replace("</a>", "\r\n").Replace("<br />", "\r\n").Replace("<u>", "").Replace("</u>", "").Replace("<i>", "").Replace("</i>", "").Replace("<b>", "").Replace("</b>", "").Replace("</strong>", "\r\n").Replace("</span>", "\r\n").Replace("</p>", "\r\n").Replace("&nbsp;", " ").Replace("<br>", "\r\n").Replace("</div>", "\r\n");
+            t1 = t1.Replace("\t", " ").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n");
+            t1 = t1.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
+            t1 = t1.Replace("\r\n ", "\r\n").Replace(" \r\n", "\r\n").Replace("\r ", "\r").Replace(" \r", "\r").Replace("\n ", "\n").Replace(" \n", "\n");
+            t1 = t1.Replace("\r\r", "\r").Replace("\r\r", "\r").Replace("\n\n", "\n").Replace("\n\n", "\n").Replace("\r\r", "\r").Replace("\r\r", "\r").Replace("\n\n", "\n").Replace("\n\n", "\n");
+            t1 = t1.Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n");
+            t1 = t1.Replace("\r\n)\r\n", ")\r\n");
+            return t1;
+            //throw new NotImplementedException();
+        }
+        public static string get_task_type_by_name(string abc)
+        {
+            for (int i = 0; i < (actions.Length / 2); i++)
+            {
+                if (abc == actions[i, 0])
+                {
+                    return actions[i, 1];
+                }
+            }
+            return "";
+        }
+        public static System.Collections.Generic.List<string> get_list_of_urls_from_text(string abc)
+        {
+            var L1 = new System.Collections.Generic.List<string>();
+            string[] lines = Regex.Split(abc, "\r\n");
+            foreach (string str in lines)
+            {
+                if (str.Length < 5) { continue; }
+                if (str.Substring(0, 4) == "http")
+                {
+                    L1.Add(str);
+                }
+            }
+            return L1;
+        }
+
+        public static void Event_SolveLevel(object sender, EventArgs e)
+        {
+            string type = get_task_type_by_name(GameTab.gChoice.SelectedItem.ToString());
+            if (type == "raschl")
+            {
+                var R1 = new Raschl(GameTab.LvlList.SelectedIndex, GameTab.LvlText.Text);
+            }
+            /*
+            if (type == "picture")
+            {
+                int cnt = 0;
+                foreach (string str in (get_list_of_urls_from_text(Data.Text.Text.ToString())))
+                {
+                    var R1 = new Picture(Data.Levels.SelectedIndex + 1, str, cnt, "");
+                    cnt++;
+                }
+            }*/
+            /*
+            if (type == "picture_answer")
+            {
+                int cnt = 0;
+                foreach (string str in (get_list_of_urls_from_text(Data.Text.Text.ToString())))
+                {
+                    var R1 = new Picture(GameTab.LvlList.SelectedIndex + 1, str, cnt, "answer");
+                    cnt++;
+                }
+            }*/
+
         }
         public static void Event_MainFormChangeSize(object sender, EventArgs e)
         {
@@ -263,6 +377,19 @@ namespace Solver
             GameTab.LvlText.Left = GameTab.LvlList.Right + mainform_border;
             GameTab.LvlText.Width = GameTab.MainTab.Width - GameTab.LvlList.Width - 3 * mainform_border;
             GameTab.LvlText.Height = GameTab.MainTab.Height - GameTab.BtnUser.Height - 3 * mainform_border;
+            GameTab.gChoice.Top = GameTab.LvlList.Bottom + 2 * Program.mainform_border;
+            GameTab.gChoice.Left = Program.mainform_border;
+            GameTab.gChoice.Width = GameTab.LvlList.Width;
+            GameTab.BtnSolve.Top = GameTab.gChoice.Bottom + 2 * Program.mainform_border;
+            GameTab.BtnSolve.Left = Program.mainform_border;
+            GameTab.BtnSolve.Width = GameTab.gChoice.Width;
+        }
+        public static void Event_SelectGameFromList(object sender, EventArgs e)
+        {
+            ListBox l4 = (ListBox)sender;
+            dGame.tb.Text = dGame.g_urls[l4.SelectedIndex];
+            //Form f1 = l4.Parent;
+            //f1.Close();
         }
         public static void Event_BtnUserClick(object sender, EventArgs e)
         {
@@ -348,7 +475,8 @@ namespace Solver
                         // запомним параметры игрока
                         dGame.username = user;
                         dGame.password = pass;
-                        pageSource = pageSource.Substring(pageSource.IndexOf(user));
+                        pageSource = pageSource.ToLower();
+                        pageSource = pageSource.Substring(pageSource.IndexOf(user.ToLower()));
                         pageSource = pageSource.Substring(pageSource.IndexOf("(id"));
                         pageSource = pageSource.Substring(pageSource.IndexOf(">")+1);
                         dGame.userid = pageSource.Substring(0, pageSource.IndexOf("<"));
@@ -390,22 +518,208 @@ namespace Solver
             string[] ar1 = Regex.Split(ps1.Replace(" bg>", "").Replace("\r\n", " ").Replace("</tr> ", "").Replace("</td> ", ""), "<tr");
             System.Collections.Generic.List<string> l1 = new System.Collections.Generic.List<string>();
             System.Collections.Generic.List<string> l2 = new System.Collections.Generic.List<string>();
-            foreach (string s1 in ar1) { if (s1.IndexOf("/Teams/TeamDetails.aspx") != -1) { l1.Add(s1); } }
-            foreach(string s2 in l1)
+            foreach (string s1 in ar1) { if (s1.IndexOf("/Teams/TeamDetails.aspx") != -1) { l1.Add(s1.Replace("> ", ">").Replace(" <", "<")); } }
+            foreach (string s2 in l1)
             {
-                string r1 = "";
-                string[] ar2 = Regex.Split(s2, "<td> ");
-                foreach (string s3 in ar2)
+                string r_url = "";
+                string r_name = "";
+                string r_num = "";
+                bool r_flag = true;
+                string[] ar2 = Regex.Split(s2,"<td>");
+                for (int i = 0; i < ar2.Length; i++)
                 {
-                    string s4 = s3.TrimStart().TrimEnd().Trim();
-                    if (s4.Length <= 3) { continue; }
-                    if (s4.IndexOf("</a>") != -1) { s4 = s4.Substring(0, s4.IndexOf("</a>")).Replace("<a ", "").Replace(">", " | "); }
-                    r1 = r1 + s4 + " | ";
+                    if (ar2[i].Length < 5) { continue; }
+                    if (ar2[i].Substring(ar2[i].Length - 5, 5) == "Место") { r_flag = false; break; }
+                    if (ar2[i][0] == '#') { r_num = ar2[i]; }
+                    if (ar2[i].IndexOf("<a href=\"") != -1)
+                    {
+                        string q1 = ar2[4].Substring(0, ar2[4].IndexOf("</a>")).Replace("<a href=\"", "");
+                        r_url = q1.Substring(0, q1.IndexOf("\">"));
+                        r_name = q1.Substring(q1.IndexOf("\">") + 2);
+                    }
                 }
-                l2.Add(r1.Substring(0,r1.Length-3));
+                if (r_flag) { l2.Add(r_url+"|"+r_num+" | "+r_name); }
             }
-            l1 = l1;
+            // l2 - list of games
+            dGame.g_names = new string[l2.Count];
+            dGame.g_urls = new string[l2.Count];
+            for(int i=0; i< l2.Count; i++)
+            {
+                int ii2 = l2[i].IndexOf("|");
+                dGame.g_urls[i] = l2[i].Substring(0,ii2);
+                dGame.g_names[i] = l2[i].Substring(ii2+1);
+            }
+
+            // форма для ввода данных
+            Form SelectGame = new Form();
+            SelectGame.Text = "Выбор игры..";
+            SelectGame.StartPosition = FormStartPosition.CenterScreen;
+            SelectGame.Width = 35 * mainform_border;
+            SelectGame.Height = 25 * mainform_border;
+            SelectGame.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            SelectGame.AutoSize = true;
+            Label la = new Label();
+            la.Text = "Необходимо двойным кликом выбрать игру из списка\r\nили же ввести ссылку на игру в нижнем поле ввода\r\nи нажать 'Открыть игру'";
+            la.Top = 2 * mainform_border;
+            la.Left = mainform_border;
+            la.Width = 100 * mainform_border;
+            la.Height = 10 * mainform_border;
+            SelectGame.Controls.Add(la);
+            ListBox lb = new ListBox();
+            lb.Top = la.Bottom + mainform_border;
+            lb.Left = mainform_border;
+            lb.Width = la.Width;
+            lb.Height = 20 * mainform_border;
+            for (int i = 0; i < dGame.g_names.Length; i++) { lb.Items.Add(dGame.g_names[i]); }
+            lb.DoubleClick += new EventHandler(Event_SelectGameFromList);
+            SelectGame.Controls.Add(lb);
+            dGame.tb = new TextBox();
+            dGame.tb.Text = "";
+            dGame.tb.Top = lb.Bottom + 2 * mainform_border;
+            dGame.tb.Left = mainform_border;
+            dGame.tb.Width = lb.Width - 24 * mainform_border;
+            SelectGame.Controls.Add(dGame.tb);
+            Button blok = new Button();
+            blok.Text = "Открыть игру";
+            blok.Top = dGame.tb.Top;
+            blok.Left = dGame.tb.Right + 2 * mainform_border;
+            blok.Width = 22 * mainform_border;
+            blok.DialogResult = DialogResult.OK;
+            SelectGame.AcceptButton = blok;
+            SelectGame.Controls.Add(blok);
+
+            // предложим ввести юзера и пароль, дефолтные значения - то, что было в реестре, или же пусто
+            string page = "";
+            bool fl = true;
+            while (fl)
+            {
+                if (SelectGame.ShowDialog() == DialogResult.OK)
+                {
+                    string url = dGame.tb.Text;
+                    // попробуем авторизоваться в игре - сначала разберем полученную строку
+                    if (url == "") { MessageBox.Show("Не выбрана игра вообще.."); continue; }
+                    string url2 = url;
+                    if (url2.Substring(0,7) != "http://") { MessageBox.Show("Указана не ссылка.."); continue; }
+                    url2 = url.Replace("http://", "");
+                    int ii1 = url2.IndexOf("/"); if (ii1 == -1) { MessageBox.Show("указан только хост.."); continue; }
+                    dGame.game_domain = url2.Substring(0,ii1);
+                    url2 = url2.Substring(ii1+1);
+                    if(url2.IndexOf("gameengines/encounter/play/") != -1)
+                    {
+                        ii1 = url2.IndexOf("/?level="); if (ii1 != -1) { url2 = url2.Substring(0, ii1); }
+                        dGame.game_id = url2.Substring(url2.LastIndexOf("/") + 1);
+                    } else
+                    {
+                        if (url2.IndexOf("GameDetails.aspx?gid=") != -1) { dGame.game_id = url2.Substring(url2.LastIndexOf("=") + 1); }
+                        else { MessageBox.Show("Ссылку на игру не удалось понять.."); continue; } // ни один из форматов ссылок не подошел
+                    }
+                    //MessageBox.Show(url + "\r\n" + dGame.game_domain + "\r\n" + dGame.game_id);
+                    // если авторизовались успешно - запоминаем игру
+                    string ps2 = Game_Logon("http://" + dGame.game_domain + "/Login.aspx", dGame.username, dGame.password);
+                    if (ps2.IndexOf("action=logout") != -1)
+                    {
+                        // прочесть игру и узнать её параметры
+                        string ps3 = get_game_page("http://" + dGame.game_domain + "/GameDetails.aspx?gid=" + dGame.game_id);
+                        string ps4 = parse_html_body(ps3).ToLower().Replace("\r\n","");
+                        int fr = ps4.IndexOf("<td>игра:мозговой штурм</td>");
+                        int fe = ps4.IndexOf("<td>covering zone:brainstorm");
+                        if (fr + fe < 0) { MessageBox.Show("Это не МШ.."); continue; }
+                        fr = ps4.IndexOf("<td>последовательность прохождения:штурмовая</td>");
+                        fe = ps4.IndexOf("<td>the levels passing sequence:storm</td>");
+                        if (fr + fe < 0) { MessageBox.Show("Последовательность не штурмовая.."); continue; }
+                        page = get_game_page("http://" + dGame.game_domain + "/gameengines/encounter/play/" + dGame.game_id);
+                        if (page.IndexOf("class=\"gameCongratulation\"") != -1) { MessageBox.Show("Эта игра уже закончилась.."); continue; }
+                        if (page.IndexOf("<span id=\"animate\">Поздравляем!!!</span>") != -1) { MessageBox.Show("Эта игра уже закончилась.."); continue; }
+                        if (page.IndexOf("Капитан команды не включил вас в состав для участия в этой игре.") != -1) { MessageBox.Show("Капитан команды не включил вас в состав для участия в этой игре.."); continue; }
+                        if (page.IndexOf("<span id=\"Panel_lblGameError\">") != -1) { MessageBox.Show("Эта игра ещё не началась.."); continue; }
+                        if (page.IndexOf("Вход в игру произойдет автоматически") != -1) { MessageBox.Show("Эта игра ещё не началась.."); continue; }
+                        //определим количтсво уровней
+                        string q_lvl = page.Substring(page.IndexOf("<body")).Replace("\r", "").Replace("\n", "").Replace("\t", "");
+                        string t1 = "<ul class=\"section level\">";
+                        string t2 = "</ul>";
+                        int i2 = q_lvl.IndexOf(t1);
+                        q_lvl = q_lvl.Substring(i2 + t1.Length);
+                        q_lvl = q_lvl.Substring(0, q_lvl.IndexOf(t2));
+                        i2 = q_lvl.LastIndexOf("<i>");
+                        q_lvl = q_lvl.Substring(i2 + 3);
+                        q_lvl = q_lvl.Substring(0, q_lvl.IndexOf("</i>"));
+                        if (Int32.TryParse(q_lvl, out i2)) { dGame.game_levels = i2; }
+                        if (dGame.game_levels == 0) { MessageBox.Show("Не удалось определить количество уровней.."); continue; }
+                        // поставим флаг выхода и заблокируем кнопку на будущее.
+                        fl = false;
+                        GameTab.BtnGame.Enabled = false;
+                        // в лог
+                        //MessageBox.Show("Открыта игра " + dGame.userid);
+                        Log("Открыта игра " + dGame.userid);
+                    }
+                    else
+                    {
+                        // если не успешно - вернемся в вводу пользователя
+                        Log("ERROR Не удалось подключиться к "+ dGame.game_domain);
+                        MessageBox.Show("Не удалось подключиться к " + dGame.game_domain);
+                    }
+                }
+                else
+                {
+                    // если отказались выбирать игру - выходим
+                    fl = false;
+                }
+            } // выход только если fl = false -- это или отказ польователя в диалоге, или если нажато ОК - проверка пройдена
+            // смотрим на page - если не пусто - то подключились
+            if(page != "")
+            {
+                dGame.level_name = new string[dGame.game_levels+1];
+                dGame.level_text = new string[dGame.game_levels+1];
+                dGame.level_full = new string[dGame.game_levels+1];
+                //dGame.level_pics = new string[dGame.game_levels+1];
+                string url_base = "http://" + dGame.game_domain + "/gameengines/encounter/play/" + dGame.game_id + "/?level=";
+                for (int i = 1; i <= dGame.game_levels; i++)
+                {
+                    string t1 = get_game_page(url_base + i.ToString());
+                    dGame.level_full[i] = t1;
+                    string t2 = t1.Substring(t1.IndexOf("<li class=\"level-active\">"));
+                    t2 = t2.Substring(t2.IndexOf("<span>") + 6);
+                    t2 = t2.Substring(0, t2.IndexOf("</span>"));
+                    t2 = i.ToString() + " : " + t2;
+                    dGame.level_name[i] = t2;
+                    GameTab.LvlList.Items.Add(t2);
+
+                    t1 = parse_level_text(t1);
+                    string pics = "";
+                    fl = true;
+                    while (fl)
+                    {
+                        fl = false;
+                        int ii1 = t1.IndexOf("<img");
+                        if (ii1 != -1)
+                        {
+                            fl = true;
+                            string t5 = t1.Substring(ii1);
+                            int ii2 = t5.IndexOf(">");
+                            string p1 = t5.Substring(0, ii2 + 1);
+                            int jj1 = p1.IndexOf("src=\"");
+                            p1 = p1.Substring(jj1 + 5);
+                            jj1 = p1.IndexOf("\"");
+                            p1 = p1.Substring(0, jj1);
+                            pics = pics + p1 + "\r\n";
+                            t1 = t1.Substring(0, ii1) + "\r\n\r\nImage:\r\n" + p1 + "\r\n" + t5.Substring(ii2 + 1);
+                        }
+                    }
+                    dGame.level_text[i] = t1;
+                }
+            }
         }
+        public static void Event_LevelSelected(object sender, EventArgs e)
+        {
+            if (GameTab.LvlList.Items.Count != 1) {
+                int newlvl = GameTab.LvlList.SelectedIndex;
+                GameTab.LvlText.Text = dGame.level_text[newlvl];
+            }
+            //Data.gChoice.Enabled = true;
+            //Data.BtnSolve.Enabled = true;
+            //throw new NotImplementedException();
+        }
+
         private static void CreateMainForm()
         {
             Mainform = new Form();
@@ -430,6 +744,7 @@ namespace Solver
             GameTab.MainTab.Controls.Add(GameTab.BtnGame);
             GameTab.LvlList = new ListBox();
             GameTab.LvlList.Items.Add("-: текст уровня пользователя");
+            GameTab.LvlList.Click += new EventHandler(Event_LevelSelected);
             GameTab.MainTab.Controls.Add(GameTab.LvlList);
             GameTab.LvlText = new TextBox();
             GameTab.LvlText.Text = "Для пользовательского уровня укажите текст задания, или ссылки на картинки\r\n\r\nДля выбора задания игры необходимо выбрать уровень в списке слева\r\n";
@@ -438,6 +753,17 @@ namespace Solver
             GameTab.LvlText.Multiline = true;
             GameTab.LvlText.ScrollBars = ScrollBars.Both;
             GameTab.MainTab.Controls.Add(GameTab.LvlText);
+
+            GameTab.gChoice = new ComboBox();
+            for (int i = 0; i < (actions.Length / 2); i++) { GameTab.gChoice.Items.Add(actions[i, 0]); }
+            GameTab.gChoice.SelectedIndex = 0;
+            GameTab.MainTab.Controls.Add(GameTab.gChoice);
+            GameTab.BtnSolve = new Button();
+            GameTab.BtnSolve.Text = "Запустить решалку";
+            GameTab.BtnSolve.Click += new EventHandler(Event_SolveLevel);
+            GameTab.MainTab.Controls.Add(GameTab.BtnSolve);
+
+
             Event_MainFormChangeSize(null, null);
         }
         static void Main(string[] args)
