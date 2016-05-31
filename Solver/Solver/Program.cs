@@ -21,6 +21,9 @@ namespace Solver
         public static string mainform_caption = "Solver..";     // имя формы
 
         public static int mainform_border = 5;      // расстояния между элементами форм, константа
+        public static int rnd_min = 800;//1300;
+        public static int rnd_max = 1500;//3300;
+        public static bool input_busy = false;
 
         public static void Log(string t)
         {
@@ -140,7 +143,7 @@ namespace Solver
         }
 
         public static string[,] actions = {
-            { "Решать самостоятельно",      "manual" },
+            //{ "Решать самостоятельно",      "manual" },
             { "Расчленёнки",                "raschl" },
             { "Картинки - только решить",   "picture"},
             { "Картинки + вбить ответы",    "picture_answer"}
@@ -195,7 +198,6 @@ namespace Solver
         public static StreamWriter logfile;
         static GameSt dGame = new GameSt();
         public static MainTabSt GameTab = new MainTabSt();
-
 
         public static string Game_Logon(string url1, string name, string pass)
         {
@@ -287,11 +289,11 @@ namespace Solver
             }
             //<span class="color_sec">(completed, award 1 minute)</span>
             t1 = t1.Replace("</a>", "\r\n").Replace("<br />", "\r\n").Replace("<u>", "").Replace("</u>", "").Replace("<i>", "").Replace("</i>", "").Replace("<b>", "").Replace("</b>", "").Replace("</strong>", "\r\n").Replace("</span>", "\r\n").Replace("</p>", "\r\n").Replace("&nbsp;", " ").Replace("<br>", "\r\n").Replace("</div>", "\r\n");
-            t1 = t1.Replace("\t", " ").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n");
+            t1 = t1.Replace("\t", " ").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n");
             t1 = t1.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
             t1 = t1.Replace("\r\n ", "\r\n").Replace(" \r\n", "\r\n").Replace("\r ", "\r").Replace(" \r", "\r").Replace("\n ", "\n").Replace(" \n", "\n");
             t1 = t1.Replace("\r\r", "\r").Replace("\r\r", "\r").Replace("\n\n", "\n").Replace("\n\n", "\n").Replace("\r\r", "\r").Replace("\r\r", "\r").Replace("\n\n", "\n").Replace("\n\n", "\n");
-            t1 = t1.Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n");
+            t1 = t1.Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n");
             t1 = t1.Replace("\r\n)\r\n", ")\r\n");
             return t1;
             //throw new NotImplementedException();
@@ -320,6 +322,61 @@ namespace Solver
                 }
             }
             return L1;
+        }
+        public static bool try_form_send(int lvl, string val)
+        {
+            string url = "http://" + dGame.game_domain + "/gameengines/encounter/play/" + dGame.game_id + "/?level=" + lvl.ToString();
+            Random rnd1 = new Random();
+            string t1 = get_game_page(url);
+            System.Threading.Thread.Sleep(rnd1.Next(Program.rnd_min, Program.rnd_max));
+            string t2 = t1;
+            string tt1 = "name=\"LevelId\" value=\"";
+            t1 = t1.Substring(t1.IndexOf(tt1) + tt1.Length);
+            string LevelId = t1.Substring(0, t1.IndexOf("\""));
+            string tt2 = "name=\"LevelNumber\" value=\"";
+            t2 = t2.Substring(t2.IndexOf(tt2) + tt2.Length);
+            string LevelNumber = t2.Substring(0, t2.IndexOf("\""));
+
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.ServicePoint.Expect100Continue = false;
+            req.Referer = url;
+            req.KeepAlive = true;
+            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            req.CookieContainer = dGame.game_cCont;
+            req.ContentType = "application/x-www-form-urlencoded";
+            req.Method = "POST";
+            string formParams = string.Format("LevelId={0}&LevelNumber={1}&LevelAction.Answer={2}", LevelId, LevelNumber, val);
+            byte[] bytes = Encoding.UTF8.GetBytes(formParams);
+            req.ContentLength = bytes.Length;
+            using (Stream os = req.GetRequestStream())
+            {
+                os.Write(bytes, 0, bytes.Length);
+            }
+            string ps = "";
+            HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
+            using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
+            {
+                ps = sr.ReadToEnd();
+            }
+
+            ps = ps.Replace("\t", "").Replace("\n", "").Replace("\r", "");
+            ps = ps.Substring(ps.IndexOf("<ul class=\"history\">"));
+            ps = ps.Substring(0, ps.IndexOf("</ul>")).Replace("<ul class=\"history\">", "").Replace("</li>", "");
+            string[] hist = Regex.Split(ps, "<li");
+            foreach (string str in hist)
+            {
+                int i1 = str.IndexOf(">" + dGame.username + "<");
+                int i2 = str.IndexOf(">" + val + "<");
+                if ((i1 != -1) && (i2 != -1))
+                {
+                    int i3 = str.IndexOf("class=\"correct\"");
+                    if (i3 != -1)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public static void Event_SolveLevel(object sender, EventArgs e)
@@ -575,6 +632,7 @@ namespace Solver
             SelectGame.Controls.Add(lb);
             dGame.tb = new TextBox();
             dGame.tb.Text = "";
+            if (Env.system_name == "NBIT01") { dGame.tb.Text="http://demo.en.cx/gameengines/encounter/play/24889"; } // for TEST
             dGame.tb.Top = lb.Bottom + 2 * mainform_border;
             dGame.tb.Left = mainform_border;
             dGame.tb.Width = lb.Width - 24 * mainform_border;
