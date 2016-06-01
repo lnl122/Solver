@@ -603,7 +603,6 @@ namespace Solver
             t1 = t1.Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n");
             t1 = t1.Replace("\r\n)\r\n", ")\r\n");
             return t1;
-            //throw new NotImplementedException();
         }
         public static string get_task_type_by_name(string abc)
         {
@@ -1071,9 +1070,6 @@ namespace Solver
                 int newlvl = GameTab.LvlList.SelectedIndex;
                 GameTab.LvlText.Text = dGame.level_text[newlvl];
             }
-            //Data.gChoice.Enabled = true;
-            //Data.BtnSolve.Enabled = true;
-            //throw new NotImplementedException();
         }
 
         private static void CreateMainForm()
