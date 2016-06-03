@@ -44,12 +44,13 @@ namespace Solver
             d.system_is64bit = Environment.Is64BitOperatingSystem;
             d.system_name = Environment.MachineName;
             d.system_version = Environment.Version.ToString();
-            d.temp_path = Environment.GetEnvironmentVariable("TEMP");
             d.self_name = Process.GetCurrentProcess().MainModule.ModuleName;
             d.log_pathfilename = d.local_path + "\\" + d.self_name + ".log";
             d.self_date = File.GetCreationTime(Process.GetCurrentProcess().MainModule.FileName).ToString();
             Program.logfile = new StreamWriter(File.AppendText(d.log_pathfilename).BaseStream);
             Program.logfile.AutoFlush = true;
+            d.temp_path = d.local_path + "\\pics"; if (!Directory.Exists(d.temp_path)) { Directory.CreateDirectory(d.temp_path); }
+            //if (!Directory.Exists(d.temp_path + "\\0")) { Directory.CreateDirectory(d.temp_path + "\\0"); }
             Log("________________________________________________________________________________");
             Log("Старт программы..");
             Log("Сборка от "+d.self_date);
@@ -360,7 +361,7 @@ namespace Solver
             foreach (string sa in part_end) { if (sa != "") { w.g_words.Add(sa); } }
             return w;
         }
-        public static string upload_file(string filepath)
+        public static string upload_file_jpegshare(string filepath)
         {
             string filename = filepath.Substring(filepath.LastIndexOf("\\") + 1);
             string uri = "http://jpegshare.net";
@@ -381,6 +382,44 @@ namespace Solver
             sd = sd.Substring(sd.IndexOf(parse_b) + 5); // 5 = [img]
             sd = sd.Substring(0, sd.IndexOf(parse_e));
             return sd;
+        }
+        public static string upload_file_ipic(string filepath)
+        {
+            string filename = filepath.Substring(filepath.LastIndexOf("\\") + 1);
+            string uri = "http://ipic.su";
+            string uriaction = uri + "/";
+            HttpClient httpClient = new HttpClient();
+            //System.Net.ServicePointManager.Expect100Continue = false;
+            MultipartFormDataContent form = new MultipartFormDataContent();
+
+            form.Add(new StringContent("/"), "link");
+            form.Add(new StringContent("loadimg"), "action");
+            form.Add(new StringContent("ipic.su"), "client");
+            //form.Add(new StringContent(filename), "name");
+            var streamContent2 = new StreamContent(File.Open(filepath, FileMode.Open));
+            form.Add(streamContent2, "image", filename);
+            //form.Add(new StringContent("client"), "ipic.su");
+            //form.Add(new StringContent("client"), "ipic.su");
+            //form.Add(new StringContent("client"), "ipic.su");
+
+            //byte[] img_bytes = System.IO.File.ReadAllBytes(filepath);
+            //form.Add(new ByteArrayContent(img_bytes, 0, img_bytes.Count()), "image", filename);
+
+            Task<HttpResponseMessage> response = httpClient.PostAsync(uriaction, form);
+            HttpResponseMessage res2 = response.Result;
+            res2.EnsureSuccessStatusCode();
+            HttpContent Cont = res2.Content;
+            httpClient.Dispose();
+            string sd = res2.Content.ReadAsStringAsync().Result;
+            sd = sd.Substring(sd.IndexOf("[edit]") + 6);
+            sd = sd.Substring(sd.IndexOf("value=\"") + 7);
+            sd = sd.Substring(0, sd.IndexOf("\""));
+            return sd;
+            //">[edit]</a>:< br />< input type = "text" value="htt
+        }
+        public static string upload_file(string filepath)
+        {
+            return upload_file_ipic(filepath);
         }
         public static string get_start_word(string v)
         {
@@ -1003,8 +1042,8 @@ namespace Solver
                         //MessageBox.Show("Открыта игра " + dGame.userid);
                         Log("Открыта игра " + dGame.userid);
                         string temppath = Env.local_path + "\\pics"; if (!Directory.Exists(temppath)) { Directory.CreateDirectory(temppath); }
-                        temppath = temppath + "\\" + dGame.game_id;  if (!Directory.Exists(temppath)) { Directory.CreateDirectory(temppath); }
-                        for (int i8 = 0; i8 <= dGame.game_levels; i8++) { if (!Directory.Exists(temppath+"\\"+i8.ToString())) { Directory.CreateDirectory(temppath + "\\" + i8.ToString()); } }
+                        //temppath = temppath + "\\" + dGame.game_id;  if (!Directory.Exists(temppath)) { Directory.CreateDirectory(temppath); }
+                        //for (int i8 = 0; i8 <= dGame.game_levels; i8++) { if (!Directory.Exists(temppath+"\\"+i8.ToString())) { Directory.CreateDirectory(temppath + "\\" + i8.ToString()); } }
                         Env.temp_path = temppath;
                     }
                     else
@@ -1099,7 +1138,7 @@ namespace Solver
             GameTab.LvlList.Click += new EventHandler(Event_LevelSelected);
             GameTab.MainTab.Controls.Add(GameTab.LvlList);
             GameTab.LvlText = new TextBox();
-            GameTab.LvlText.Text = "Для пользовательского уровня укажите текст задания, или ссылки на картинки\r\n\r\nДля выбора задания игры необходимо выбрать уровень в списке слева\r\n";
+            GameTab.LvlText.Text = "Для пользовательского уровня укажите текст задания, или ссылки на картинки\r\n\r\nДля выбора задания игры необходимо выбрать уровень в списке слева\r\n\r\nhttp://d2.endata.cx/data/games/24889/test_pic_1_16.jpg\r\n";
             GameTab.LvlText.AcceptsReturn = true;
             GameTab.LvlText.AcceptsTab = false;
             GameTab.LvlText.Multiline = true;

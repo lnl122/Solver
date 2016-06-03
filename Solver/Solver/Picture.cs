@@ -34,7 +34,13 @@ namespace Solver
         public List<Program.words> Picture_Process(Picture_data d)
         {
             var L2 = new List<string>();
-            string basename = Program.Env.temp_path + "\\" + d.level + "\\" + d.cnt + "_#.jpg";
+            string dlevel2 = d.level.ToString();
+            if (dlevel2 == "-1") { dlevel2 = "0"; }
+            string dgameid = Program.dGame.game_id;
+            if ((dgameid == null) || (dgameid == "")) { dgameid = "0"; }
+            string basename = Program.Env.temp_path + "\\g" + dgameid + "_l" + dlevel2 + "_p" + d.cnt.ToString() + "_n" + "#" + ".jpg";
+            //string basename = Program.Env.temp_path + "\\" + dlevel2 + "\\pic_#_(" + d.cnt.ToString() + ").jpg";
+            //string basename = Program.Env.temp_path + "\\" + dlevel2 + "\\pic_" + dlevel2 + "#_(" + d.cnt.ToString() + ").jpg";
             int total_parts = d.str * d.col;
             int w = d.bmp.Width;
             int h = d.bmp.Height;
@@ -52,13 +58,14 @@ namespace Solver
                     Rectangle re = new Rectangle(sw, sh, dw, dh);
                     nb = d.bmp.Clone(re, System.Drawing.Imaging.PixelFormat.Undefined);
                     string fn = basename.Replace("#", cnt.ToString());
-                    nb.Save(fn);
+                    nb.Save(fn, System.Drawing.Imaging.ImageFormat.Jpeg);
                     L2.Add(fn);
                 }
             }
             var Tasks2 = new List<Task<Program.words>>();
             foreach (string t2 in L2)
             {
+                //System.Threading.Thread.Sleep(1000);
                 // создать дополнительные дочерние потоки, передать им управление
                 Task<Program.words> ta = Task<Program.words>.Factory.StartNew(() => Picture_Process_One(t2));
                 Tasks2.Add(ta);
@@ -66,16 +73,40 @@ namespace Solver
             // дождаться выполнения потоков, собрать результаты вместе
             Task.WaitAll(Tasks2.ToArray());
             List<Program.words> r2 = new List<Program.words>();
-            foreach (Task<Program.words> t8 in Tasks2) { r2.Add(t8.Result); }
+            int iii = d.init_num;
+            foreach (Task<Program.words> t8 in Tasks2)
+            {
+                Program.words r8 = t8.Result;
+                r8.level = d.level;
+                r8.number = iii;
+                iii++;
+                r2.Add(r8);
+            }
             return r2;
         } // вход - структура одной картинки, выход - список структур о словах
-
-        //??
         public List<Program.words> Pictures_Process(Pictures_data d) // вход структура с урлами всех картинок, без колонок/строк и прочего выход - список структур о словах
         {
+            var Tasks2 = new List<Task<List<Program.words>>>();
+            foreach (Picture_data p1 in d.pics)
+            {
+                Task<List<Program.words>> ta = Task<List<Program.words>>.Factory.StartNew(() => Picture_Process(p1));
+                //System.Threading.Thread.Sleep(3000);
+                Tasks2.Add(ta);
+            }
+            Task.WaitAll(Tasks2.ToArray());
+
             List<Program.words> r = new List<Program.words>();
 
+            foreach (Task<List<Program.words>> t8 in Tasks2)
+            {
+                foreach (Program.words r8 in t8.Result)
+                {
+                    r.Add(r8);
+                }
+            }
 
+            //if (d.Auto.Checked) { while (Program.input_busy) { Thread.Sleep(1000); } Program.input_busy = true; }
+            Program.Mainform.BeginInvoke(new Action(() => Picture_Buttons_Enable(d)));
             return r;
         }
 
@@ -98,12 +129,13 @@ namespace Solver
             public ComboBox cb_col;//колонок
             public ComboBox cb_protect;//защита
             public ListBox pics_list;//перечень картинок
-            public TextBox init_num;//нач номер
+            public NumericUpDown init_num;//нач номер
             public Label lb_str;
             public Label lb_col;
             public Label lb_prot;
             public Label lb_init;
             public PictureBox img;
+            public TextBox TextOut;
         }
         public struct Picture_data // для одной картинки, под распознавание 16/20/25 мелких
         {
@@ -118,6 +150,7 @@ namespace Solver
         public Pictures_data Data;
         public Picture(int level, List<string> urls)//для только решения картинок
         {
+            if (urls.Count == 0) { MessageBox.Show("В задании нет ни одной ссылки на картинки");  return; }
             Data.type = "Picture";
             Data.level = level;
             Data.urls = urls;
@@ -152,8 +185,13 @@ namespace Solver
                 Data.pics[i].init_num = 0;
             }
             Data.prot = prot.none;
-            Data.init_num = new TextBox();
-            Data.init_num.Text = "0";
+            Data.init_num = new NumericUpDown();
+            Data.init_num.Minimum = 0;
+            Data.init_num.Maximum = 257;
+            Data.init_num.Increment = 1;
+            Data.init_num.Value = 1;
+            Data.pics[0].init_num = Convert.ToInt32(Data.init_num.Value);
+            Data.init_num.ValueChanged += new EventHandler(Event_Picture_InitNum_Change);
             Data.Tab.Controls.Add(Data.init_num);
             Data.pics_list = new ListBox();
             Data.ar_urls = new string[Data.pic_cnt];
@@ -164,6 +202,7 @@ namespace Solver
                 ii9++;
             }
             Data.pics_list.SelectedIndex = Data.pic_cnt-1;
+            Data.pics_list.SelectedIndexChanged += new EventHandler(Event_Picture_ListPics_Select);
             Data.Tab.Controls.Add(Data.pics_list);
             Data.cb_protect = new ComboBox();
             Data.cb_protect.Items.Add("Без защиты");
@@ -225,31 +264,69 @@ namespace Solver
             }
             Data.img.SizeMode = PictureBoxSizeMode.StretchImage;
             Data.Tab.Controls.Add(Data.img);
+            Data.pics_list.SelectedIndex = 0;
+            Data.img.Image = Data.pics[0].img;
+            Data.TextOut = new TextBox();
+            Data.TextOut.Visible = false;
+            Data.TextOut.AcceptsReturn = true;
+            Data.TextOut.AcceptsTab = false;
+            Data.TextOut.Multiline = true;
+            Data.TextOut.ScrollBars = ScrollBars.Both;
+            Data.Tab.Controls.Add(Data.TextOut);
+
             Event_Picture_ChangeSize(null, null);
             Program.Mainform.SizeChanged += new EventHandler(Event_Picture_ChangeSize);
             Program.Tabs.Controls.Add(Data.Tab);
             Program.Tabs.SelectTab(Program.Tabs.TabCount - 1);
         }
-        private void Event_Picture_Solve_Click(object sender, EventArgs e)
+
+        private void Event_Picture_Protect_Change(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-        }//??
+            switch (Data.cb_protect.SelectedIndex)
+            {
+                case 0: Data.prot = prot.none;   break;
+                case 1: Data.prot = prot.begin1; break;
+                case 2: Data.prot = prot.begin2; break;
+                case 3: Data.prot = prot.begin3; break;
+                case 4: Data.prot = prot.end1;   break;
+                case 5: Data.prot = prot.end2;   break;
+                case 6: Data.prot = prot.end3;   break;
+                default: Data.prot = prot.none;  break;
+            }
+        }
+        private void Event_Picture_ListPics_Select(object sender, EventArgs e)
+        {
+            Data.img.Image = Data.pics[Data.pics_list.SelectedIndex].img;
+            Data.init_num.Value = Data.pics[Data.pics_list.SelectedIndex].init_num;
+            Data.cb_str.SelectedIndex = Data.pics[Data.pics_list.SelectedIndex].str;
+            Data.cb_col.SelectedIndex = Data.pics[Data.pics_list.SelectedIndex].col;
+        }
+        private static void Picture_Buttons_Enable(Pictures_data d)                  // меняем оптом доступность кнопок
+        {
+            d.BtnSolve.Enabled = true;
+            d.BtnClose.Enabled = true;
+            if (d.level != -1) { d.Auto.Enabled = true; }
+            d.cb_str.Enabled = true;
+            d.cb_col.Enabled = true;
+            d.cb_protect.Enabled = true;
+            d.pics_list.Enabled = true;
+            d.init_num.Enabled = true;
+        }
+        private static void Picture_Buttons_Disable(Pictures_data d)                  // меняем оптом доступность кнопок
+        {
+            d.BtnSolve.Enabled = false;
+            d.BtnClose.Enabled = false;
+            d.Auto.Enabled = false;
+            d.cb_str.Enabled = false;
+            d.cb_col.Enabled = false;
+            d.cb_protect.Enabled = false;
+            d.pics_list.Enabled = false;
+            d.init_num.Enabled = false;
+        }
         private void Event_Picture_Close_Click(object sender, EventArgs e)
         {
             Data.Tab.Dispose();
         }
-        private void Event_Picture_Protect_Change(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }//??
-        private void Event_Picture_Str_Change(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }//??
-        private void Event_Picture_Col_Change(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }//??
         private void Event_Picture_ChangeSize(object sender, EventArgs e)
         {
             Data.BtnSolve.Top = Program.mainform_border;
@@ -304,127 +381,50 @@ namespace Solver
             Data.img.Left = mm + 2 * Program.mainform_border;
             Data.img.Width = Program.GameTab.MainTab.Width - mm - 3 * Program.mainform_border;
             Data.img.Height = Program.GameTab.MainTab.Height - Data.pics_list.Top - 1 * Program.mainform_border;
-
-            /*
-                  public ComboBox cb_str;//строк
-                  public ComboBox cb_col;//колонок
-                  public ComboBox cb_protect;//защита
-                  public TextBox init_num;//нач номер
-                  */
+            Data.TextOut.Top = Data.img.Top;
+            Data.TextOut.Left = Data.img.Left;
+            Data.TextOut.Width = Data.img.Width;
+            Data.TextOut.Height = Data.img.Height;
         }
-        private static void Picture_Buttons_Enable(Pictures_data d)                  // меняем оптом доступность кнопок
+        private void Event_Picture_InitNum_Change(object sender, EventArgs e)
         {
-            d.BtnSolve.Enabled = true;
-            d.BtnClose.Enabled = true;
-            if (d.level != -1) { d.Auto.Enabled = true; }
-            d.cb_str.Enabled = true;
-            d.cb_col.Enabled = true;
-            d.cb_protect.Enabled = true;
-            d.pics_list.Enabled = true;
-            d.init_num.Enabled = true;
-    }
-        private static void Picture_Buttons_Disable(Pictures_data d)                  // меняем оптом доступность кнопок
-        {
-            d.BtnSolve.Enabled = false;
-            d.BtnClose.Enabled = false;
-            d.Auto.Enabled = false;
-            d.cb_str.Enabled = false;
-            d.cb_col.Enabled = false;
-            d.cb_protect.Enabled = false;
-            d.pics_list.Enabled = false;
-            d.init_num.Enabled = false;
+            Data.pics[Data.pics_list.SelectedIndex].init_num = Convert.ToInt32(Data.init_num.Value);
         }
-        //============================================================================
-
-        //private static string[] bad_words = { "рабочего стола", "высокого качества", "&gt", "png", "dvd", "the", "buy", "avito", "авг", "апр", "без", "вас", "дек", "для", "его", "жми", "или", "июл", "июн", "как", "кто", "лет", "мар", "мем", "ноя", "окт", "они", "при", "про", "сен", "смс", "так", "тег", "фев", "что", "эту", "янв", "file", "free", "англ", "есть", "обои", "фото", "цена", "цены", "ютуб", "[pdf]", "stock", "видео", "куплю", "можно", "найти", "одной", "песен", "самые", "самых", "сразу", "тегам", "фильм", "images", "купить", "онлайн", "отзывы", "почему", "продам", "скидки", "услуги", "фильма", "фильму", "шаблон", "яндекс", "youtube", "выбрать", "закачка", "закачки", "маркете", "новости", "продажа", "продать", "рабочий", "родился", "скачать", "сколько", "способы", "форматы", "хорошем", "download", "выгодная", "выгодные", "выгодный", "картинки", "качестве", "магазине", "описание", "подборка", "свойства", "смотреть", "страницу", "kinopoisk", "photoshop", "wallpaper", "бесплатно", "перевести", "программы", "бесплатные", "применение", "разрешение", "широкоформатные", "ответить" };
-
-        //Picture_data d;
-
-
-
-
-        /*public void Event_Picture_Msg(object sender, EventArgs e)
+        private void Event_Picture_Str_Change(object sender, EventArgs e)
         {
-            Tabs.ButtonsEnable(Data.Tab, false);
-            if ((Data.ver.SelectedIndex * Data.hor.SelectedIndex) != 0)
+            Data.pics[Data.pics_list.SelectedIndex].str = Data.cb_str.SelectedIndex;
+        }
+        private void Event_Picture_Col_Change(object sender, EventArgs e)
+        {
+            Data.pics[Data.pics_list.SelectedIndex].col = Data.cb_col.SelectedIndex;
+        }
+        private void Event_Picture_Solve_Click(object sender, EventArgs e)
+        {
+            //проверим, все ли готово
+            for (int i=0; i<Data.pic_cnt; i++) { if (Data.pics[i].str * Data.pics[i].col * Data.pics[i].init_num == 0) { MessageBox.Show("Для " + (i+1).ToString() + "-й картинки заполнены не все параметры.."); return; } }
+
+            //можно стартовать процессы по собранным данным
+            Picture_Buttons_Disable(Data);
+            Program.Log("Начали решать картинки\r\n.\r\n");
+            Task<List<Program.words>> t1 = Task<List<Program.words>>.Factory.StartNew(() => Pictures_Process(Data));
+            List<Program.words> res = t1.Result;
+            Data.img.Height = Data.img.Height / 2 - Program.mainform_border;
+            Data.TextOut.Height = Data.img.Height;
+            Data.TextOut.Top = Data.img.Bottom + Program.mainform_border;
+            Data.TextOut.Visible = true;
+            foreach (Program.words wrd in res)
             {
-                Data.bmp = new Bitmap(Data.pic.Image);
-                Data.str = Data.hor.SelectedIndex;
-                Data.col = Data.ver.SelectedIndex;
-                Task t1 = Task.Factory.StartNew(() => Picture_Process(Data));
+                Data.TextOut.Text += (wrd.number + " : ");
+                Data.TextOut.Text += (wrd.g_variant + " | ");
+                foreach (string str in wrd.g_words)
+                {
+                    Data.TextOut.Text += (str + " ");
+                }
+                Data.TextOut.Text += "\r\n";
             }
-            else
-            {
-                Data.Text.Text = "Сначала нужно выбрать количество колонок и строк..";
-                Tabs.ButtonsEnable(Data.Tab, true);
-            }
-
         }
-        */
-        //var R1 = new Picture(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString())), "");
-        /*public Picture__old(int level, List<string> url, string act) 
-        {
-            // act = "association" or ""
-            Data.type = "Picture";
-            Data.Tab = new TabPage();
-            Data.Tab.Text = "Картинка";
-            Data.level = level;
-            Data.cnt = cnt;
-            Data.act = act;
 
-            var BtnSolve = new Button();
-            BtnSolve.Text = "Решить";
-            BtnSolve.Location = new Point(Program.mainform_border, Program.mainform_border);
-            BtnSolve.Click += new EventHandler(Event_Picture_Msg);
-            Data.Tab.Controls.Add(BtnSolve);
 
-            var BtnClose = new Button();
-            BtnClose.Text = "Закрыть";
-            BtnClose.Location = new Point(Program.Tabs.Width - 18 * Program.mainform_border, Program.mainform_border);
-            BtnClose.Click += new EventHandler(Tabs.Event_Close_Tab);
-            Data.Tab.Controls.Add(BtnClose);
-
-            Data.hor = new ComboBox();
-            Data.hor.Top = Program.mainform_border;
-            Data.hor.Left = BtnSolve.Right + Program.mainform_border;
-            Data.hor.Width = BtnSolve.Width;
-            Data.hor.Items.Add("Строк:"); Data.hor.Items.Add("1"); Data.hor.Items.Add("2"); Data.hor.Items.Add("3"); Data.hor.Items.Add("4"); Data.hor.Items.Add("5"); Data.hor.Items.Add("6"); Data.hor.Items.Add("7"); Data.hor.Items.Add("8"); Data.hor.Items.Add("9");
-            Data.hor.SelectedIndex = 0;
-            Data.Tab.Controls.Add(Data.hor);
-
-            Data.ver = new ComboBox();
-            Data.ver.Top = Program.mainform_border;
-            Data.ver.Left = Data.hor.Right + Program.mainform_border;
-            Data.ver.Width = BtnSolve.Width;
-            Data.ver.Items.Add("Колонок:"); Data.ver.Items.Add("1"); Data.ver.Items.Add("2"); Data.ver.Items.Add("3"); Data.ver.Items.Add("4"); Data.ver.Items.Add("5"); Data.ver.Items.Add("6"); Data.ver.Items.Add("7"); Data.ver.Items.Add("8"); Data.ver.Items.Add("9");
-            Data.ver.SelectedIndex = 0;
-            Data.Tab.Controls.Add(Data.ver);
-
-            Data.pic = new PictureBox();
-            Data.pic.Top = BtnSolve.Bottom + Program.mainform_border;
-            Data.pic.Left = Program.mainform_border;
-            Data.pic.Width = Program.Tabs.Width * 2 / 3;
-            Data.pic.Height = Program.Tabs.Height - BtnSolve.Height - 9 * Program.mainform_border;
-            Data.pic.SizeMode = PictureBoxSizeMode.StretchImage;
-            Data.pic.ImageLocation = url;
-            Data.pic.Load();
-            Data.Tab.Controls.Add(Data.pic);
-
-            Data.Text = new TextBox();
-            Data.Text.Top = BtnSolve.Bottom + Program.mainform_border;
-            Data.Text.Left = Data.pic.Right + Program.mainform_border;
-            Data.Text.Width = Program.Tabs.Width * 2 / 3 - 7 * Program.mainform_border;
-            Data.Text.Height = Data.pic.Height;
-            Data.Text.AcceptsReturn = true;
-            Data.Text.AcceptsTab = false;
-            Data.Text.Multiline = true;
-            Data.Text.ScrollBars = ScrollBars.Both;
-            Data.Text.Text = "";
-            Data.Tab.Controls.Add(Data.Text);
-
-            Program.Tabs.Controls.Add(Data.Tab);
-            Program.Tabs.SelectTab(Program.Tabs.TabCount - 1);
-        }*/
 
 
     }

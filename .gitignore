@@ -11,9 +11,21 @@
 *.userprefs
 
 # Build results
-[Dd]ebug/
+#[Dd]ebug/
+[Dd]ebug/*.log
+[Dd]ebug/*.pdb
+[Dd]ebug/*.config
+[Dd]ebug/*.manifest
+[Dd]ebug/*.vshost.exe
+[Dd]ebug/pics/
 [Dd]ebugPublic/
-[Rr]elease/
+#[Rr]elease/
+[Rr]elease/*.log
+[Rr]elease/*.pdb
+[Rr]elease/*.config
+[Rr]elease/*.manifest
+[Rr]elease/*.vshost.exe
+[Rr]elease/pics/
 [Rr]eleases/
 [Xx]64/
 [Xx]86/
