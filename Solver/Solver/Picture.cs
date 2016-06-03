@@ -107,6 +107,7 @@ namespace Solver
 
             //if (d.Auto.Checked) { while (Program.input_busy) { Thread.Sleep(1000); } Program.input_busy = true; }
             Program.Mainform.BeginInvoke(new Action(() => Picture_Buttons_Enable(d)));
+            r = words_google_to_find(r); // eng/rus/bad sorting
             return r;
         }
 
@@ -407,11 +408,23 @@ namespace Solver
             Picture_Buttons_Disable(Data);
             Program.Log("Начали решать картинки\r\n.\r\n");
             Task<List<Program.words>> t1 = Task<List<Program.words>>.Factory.StartNew(() => Pictures_Process(Data));
+
             List<Program.words> res = t1.Result;
+            //результат ждать нельзя. оно тупит форму. Надо менять на делегата.
+            //тип поставить void
+
             Data.img.Height = Data.img.Height / 2 - Program.mainform_border;
             Data.TextOut.Height = Data.img.Height;
             Data.TextOut.Top = Data.img.Bottom + Program.mainform_border;
             Data.TextOut.Visible = true;
+
+            if (Data.Auto.Checked)
+            {
+                //вбиваем, устанавливаем answer в структуре, если слово подошло.
+
+            }
+
+
             foreach (Program.words wrd in res)
             {
                 Data.TextOut.Text += (wrd.number + " : ");
@@ -424,8 +437,77 @@ namespace Solver
             }
         }
 
-
-
-
+        private List<Program.words> words_google_to_find(List<Program.words> q)
+        {
+            var wordApp = new Microsoft.Office.Interop.Word.Application();
+            wordApp.Visible = false;
+            List<Program.words> w = new List<Program.words>();
+            foreach (Program.words q1 in q)
+            {
+                // дял всех найденных списков
+                Program.words w1 = q1;
+                w1.g_words_ru = new List<string>();
+                w1.g_words_en = new List<string>();
+                w1.g_words_en_trans = new List<string>();
+                w1.w_find = new List<string>();
+                w1.w_base = new List<string>();
+                w1.w_assoc = new List<string>();
+                foreach(string w2 in w1.g_words)
+                {
+                    //рассмотрим один набор слов для одной картинки
+                    bool bad = false;
+                    //проверим на плохое слово
+                    for (int i = 0; i < Program.bad_words.Length; i++) { if (w2 == Program.bad_words[i]) { bad = true; } }
+                    if (bad) { continue; }
+                    // lang? ru/en
+                    string w3 = w2.ToLower().Replace("ё","е");
+                    char c1 = w3[0];
+                    char c2 = w3[w3.Length - 1];
+                    if (((c1 >= 'a') && (c1 <= 'z')) || ((c2 >= 'a') && (c2 <='z')))
+                    {
+                        // eng
+                        w1.g_words_en.Add(w3.ToLower());
+                        //string tr = Program.get_trans_word(w3);
+                        //if (tr != "") { w1.g_words_en_trans.Add(tr); }
+                    }
+                    if (((c1 >= 'а') && (c1 <= 'я')) || ((c2 >= 'а') && (c2 <= 'я')))
+                    {
+                        // rus
+                        if (wordApp.CheckSpelling(w3)) { w1.g_words_ru.Add(w3); }
+                        else { if (wordApp.CheckSpelling(w3.Substring(0, 1).ToUpper() + w3.Substring(1, w3.Length - 1))) { w1.g_words_ru.Add(w3); } }
+                    }
+                    w1.w_find = w1.g_words_ru;
+                    if (w1.g_words_en.Count != 0)
+                    {
+                        //переведем их
+                        string tren = "";
+                        foreach (string t3 in w1.g_words_en) { tren = tren + t3 + ". "; } tren = tren.TrimEnd();
+                        tren = Program.get_trans_word(tren).ToLower();
+                        string[] ar1 = tren.Split('.');
+                        foreach (string ar2 in ar1) { w1.g_words_en_trans.Add(ar2.TrimStart().TrimEnd()); }
+                        w1.w_find.AddRange(w1.g_words_en_trans);
+                    }
+                }
+                //убрать дупы
+                if (w1.w_find != null) { w1.w_find = w1.w_find.Distinct().ToArray().ToList(); }
+                //добавить в решение
+                w.Add(w1);
+            }
+            wordApp.Quit();
+            return w;
+            /*
+            public int level;
+            public int number;
+            public string answer;
+            public string g_variant;
+            public List<string> g_words;
+            public List<string> g_words_ru;
+            public List<string> g_words_en;
+            public List<string> g_words_en_trans;
+            public List<string> w_find;
+            public List<string> w_base;
+            public List<string> w_assoc;
+            */
+        }
     }
 }

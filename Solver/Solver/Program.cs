@@ -204,6 +204,11 @@ namespace Solver
         public static GameSt dGame = new GameSt();
         public static MainTabSt GameTab = new MainTabSt();
 
+        public static string[] bad_words = {
+                "рабочего стола", "высокого качества", "&gt", "png", "dvd", "the", "buy", "avito", "авг", "апр", "без", "вас", "дек", "для", "его", "жми", "или", "июл", "июн", "как", "кто", "лет", "мар", "мем", "ноя", "окт", "они", "при", "про", "сен", "смс", "так", "тег", "фев", "что", "эту", "янв", "file", "free", "англ", "есть", "обои", "фото", "цена", "цены", "ютуб", "[pdf]", "stock", "видео", "куплю", "можно", "найти", "одной", "песен", "самые", "самых", "сразу", "тегам", "фильм", "images", "купить", "онлайн", "отзывы", "почему", "продам", "скидки", "услуги", "фильма", "фильму", "шаблон", "яндекс", "youtube", "выбрать", "закачка", "закачки", "маркете", "новости", "продажа", "продать", "рабочий", "родился", "скачать", "сколько", "способы", "форматы", "хорошем", "download", "выгодная", "выгодные", "выгодный", "картинки", "качестве", "магазине", "описание", "подборка", "свойства", "смотреть", "страницу", "kinopoisk", "photoshop", "wallpaper", "бесплатно", "перевести", "программы", "бесплатные", "применение", "разрешение"
+                , "широкоформатные", "ответить"
+            };
+
         public struct words
         {
             public int level;
@@ -214,6 +219,9 @@ namespace Solver
             public List<string> g_words_ru;
             public List<string> g_words_en;
             public List<string> g_words_en_trans;
+            public List<string> w_find;
+            public List<string> w_base;
+            public List<string> w_assoc;
         }
         public static words parse_google_page_words(string gtext2)
         {
@@ -474,11 +482,11 @@ namespace Solver
             v4 = v4.Replace("индульгенция", "").Trim().TrimEnd().TrimStart();
             return v4;
         }
-        public static string get_assoc_word(string v, int max_res_cnt)
+        public static List<string> get_assoc_word(string v, int max_res_cnt=10000)
         {
-            if (v == "") { return ""; }
+            List<string> res7 = new List<string>();
+            if (v == "") { return res7; }
             string[] arr1 = v.Split(' ');
-            string r1 = "";
             string re = "";
             foreach (string w1 in arr1)
             {
@@ -486,20 +494,27 @@ namespace Solver
                 WebClient cl = new WebClient();
                 cl.Encoding = System.Text.Encoding.UTF8;
                 string w2 = "http://sociation.org/word/" + w1;
-                //bool ffl = true;
-                //while (ffl)
-                //{
-                try
+                bool ffl = true;
+                int iil = 0;
+                while (ffl)
                 {
-                    re = cl.DownloadString(w2);
-                    //ffl = false;
+                    try
+                    {
+                        re = cl.DownloadString(w2);
+                        ffl = false;
+                    }
+                    catch
+                    {
+                        Thread.Sleep(1000);
+                        iil++;
+                        if(iil == 15)
+                        {
+                            Log("ERROR: sociation.org вызвал наш таймаут в секунду");
+                            re = "";
+                            ffl = false;
+                        }
+                    }
                 }
-                catch
-                {
-                    //Thread.Sleep(5000);
-                    re = "";
-                }
-                //}
                 cl.Dispose();
                 int ii1 = re.IndexOf("<ol ");
                 if (ii1 == -1) { continue; } else { re = re.Substring(ii1); }
@@ -516,22 +531,48 @@ namespace Solver
                     if (ii4 == -1) { continue; }
                     string ww4 = ww2.Substring(ii4 + 1).Replace(" ", "").Replace("\r", "").Replace("\n", "").Replace("\t", "");
                     if (ww4 == "") { continue; }
-                    r1 = r1 + " " + ww4;
+                    res7.Add(ww4.ToLower());
                     cnt++;
                     if (cnt >= max_res_cnt) { break; }
                 }
             }
-            return r1.ToLower().TrimStart().TrimEnd().Trim();
+            return res7;
         }
         public static string get_trans_word(string s1)
         {
             if (s1 == "") { return ""; }
             WebClient wc1 = new WebClient();
-            string re1 = wc1.DownloadString(String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair=en|ru", s1.ToLower()));
+            
+            string w2 = String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair=en|ru", s1.ToLower());
+            string re1 = "";
+            bool ffl = true;
+            int iil = 0;
+            while (ffl)
+            {
+                try
+                {
+                    //re1 = wc1.DownloadString(w2);
+                    var re2 = wc1.DownloadStringTaskAsync(w2);
+                    re1 = re2.Result;
+                    ffl = false;
+                }
+                catch
+                {
+                    Thread.Sleep(1000);
+                    iil++;
+                    if (iil == 15)
+                    {
+                        Log("ERROR: www.google.com/translate_t? вызвал наш таймаут в секунду");
+                        re1 = "";
+                        ffl = false;
+                    }
+                }
+            }
+            if (re1 == "") { return ""; }
             re1 = re1.Substring(re1.IndexOf("<span title=\"") + "<span title=\"".Length);
             re1 = re1.Substring(re1.IndexOf(">") + 1);
             re1 = re1.Substring(0, re1.IndexOf("</span>"));
-            return re1.Trim();
+            return re1.ToLower().Trim();
         }
         public static string get_google_url_page(string url)
         {
@@ -667,6 +708,21 @@ namespace Solver
                 }
             }
             return L1;
+        }
+        public static string set_word_protect(string v, int num, Picture.prot p)
+        {
+            string vv = "000";
+            switch (p)
+            {
+                case Picture.prot.none      : return v;
+                case Picture.prot.begin1    : return num.ToString() + v;
+                case Picture.prot.begin2    : vv += num.ToString(); return vv.Substring(vv.Length - 2, 2) + v;
+                case Picture.prot.begin3    : vv += num.ToString(); return vv.Substring(vv.Length - 3, 3) + v;
+                case Picture.prot.end1      : return v + num.ToString();
+                case Picture.prot.end2      : vv += num.ToString(); return v + vv.Substring(vv.Length - 2, 2);
+                case Picture.prot.end3      : vv += num.ToString(); return v + vv.Substring(vv.Length - 3, 3);
+                default                     : return v;
+            }
         }
         public static bool try_form_send(int lvl, string val)
         {
