@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Association.cs" />
+    <Compile Include="Gybrid.cs" />
     <Compile Include="Logogrif.cs" />
     <Compile Include="Metagramm.cs" />
     <Compile Include="Picture.cs" />

@@ -164,7 +164,8 @@ namespace Solver
             { "Картинки - только решить",       "picture"},
             { "Картинки + ассоциации",          "picture_association"},
             { "Картинки + логогрифы СОН-СЛОН",  "logogrif"},
-            { "Картинки + метаграммы КОТ-КИТ",  "metagramm"}
+            { "Картинки + метаграммы КОТ-КИТ",  "metagramm"},
+            { "Картинки + гибриды оСПАржа",     "gybrid"}
 
             };
 
@@ -962,6 +963,11 @@ namespace Solver
             {
                 var R1 = new Metagramm(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
             }
+            if (type == "gybrid")
+            {
+                var R1 = new Gybrid(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
+            }
+            //
         }
         public static void Event_MainFormChangeSize(object sender, EventArgs e)
         {
