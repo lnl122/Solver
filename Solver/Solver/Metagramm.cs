@@ -89,16 +89,8 @@ namespace Solver
                         if (i1 == i2) { continue; }
                         // разные  i1 i2, ответов не было
                         List<string> logo1 = is_Metagramm(w[i1].w_find, w[i2].w_find);
-                        if (logo1.Count != 0)
-                        {
-                            foreach(string ss9 in logo1)
-                            {
-                                if (Program.try_form_send(w[i1].level, ss9))
-                                {
-                                    w[i1].answer = ss9; w[i2].answer = ss9;
-                                }
-                            }
-                        }
+                        if (logo1.Count != 0) { foreach (string ss9 in logo1) { if (Program.try_form_send(w[i1].level, ss9)) { w[i1].answer = ss9; w[i2].answer = ss9; break; } } }
+
                     }
                 }
                 Program.input_busy = false;
@@ -128,16 +120,7 @@ namespace Solver
                         if (i1 == i2) { continue; }
                         // разные  i1 i2, ответов не было
                         List<string> logo1 = is_Metagramm(w[i1].w_find, w[i2].w_find);
-                        if (logo1.Count != 0)
-                        {
-                            foreach (string ss9 in logo1)
-                            {
-                                if (Program.try_form_send(w[i1].level, ss9))
-                                {
-                                    w[i1].answer = ss9; w[i2].answer = ss9;
-                                }
-                            }
-                        }
+                        if (logo1.Count != 0) { foreach (string ss9 in logo1) { if (Program.try_form_send(w[i1].level, ss9)) { w[i1].answer = ss9; w[i2].answer = ss9; break; } } }
                     }
                 }
                 Program.input_busy = false;
