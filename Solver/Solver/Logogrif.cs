@@ -4,16 +4,17 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
 
+
 namespace Solver
 {
-    class Picture
+    class Logogrif
     {
         int image_border_width = 5;
-        public Program.words Picture_Process_One(string path)
+        public Program.words Logogrif_Process_One(string path)
         {
             return Program.parse_google_page_words(Program.get_google_url_page(Program.upload_file(path)));
         } // вход - локальный путь к одной части, выход - структура о словах
-        public List<Program.words> Picture_Process(Program.Picture_data d)
+        public List<Program.words> Logogrif_Process(Program.Picture_data d)
         {
             var L2 = new List<string>();
             string dlevel2 = d.level.ToString();
@@ -45,7 +46,7 @@ namespace Solver
                 }
             }
             var Tasks2 = new List<Task<Program.words>>();
-            foreach (string t2 in L2) { Tasks2.Add(Task<Program.words>.Factory.StartNew(() => Picture_Process_One(t2))); }
+            foreach (string t2 in L2) { Tasks2.Add(Task<Program.words>.Factory.StartNew(() => Logogrif_Process_One(t2))); }
             // дождаться выполнения потоков, собрать результаты вместе
             Task.WaitAll(Tasks2.ToArray());
             List<Program.words> r2 = new List<Program.words>();
@@ -61,12 +62,12 @@ namespace Solver
             }
             return r2;
         } // вход - структура одной картинки, выход - список структур о словах
-        public List<Program.words> Pictures_Process(Program.Pictures_data d) // вход структура с урлами всех картинок, без колонок/строк и прочего выход - список структур о словах
+        public List<Program.words> Logogrifs_Process(Program.Pictures_data d) // вход структура с урлами всех картинок, без колонок/строк и прочего выход - список структур о словах
         {
             var Tasks2 = new List<Task<List<Program.words>>>();
             foreach (Program.Picture_data p1 in d.pics)
             {
-                Tasks2.Add(Task<List<Program.words>>.Factory.StartNew(() => Picture_Process(p1)));
+                Tasks2.Add(Task<List<Program.words>>.Factory.StartNew(() => Logogrif_Process(p1)));
             }
             Task.WaitAll(Tasks2.ToArray());
             List<Program.words> r = new List<Program.words>();
@@ -74,20 +75,103 @@ namespace Solver
             r = Program.words_google_to_find(r); // eng/rus/bad sorting
             if (d.Auto.Checked)
             {
-                r = Program.words_to_engine(r, "find");
+                Program.words[] w = r.ToArray();
+                int wi = w.Length;
+                while (Program.input_busy) { System.Threading.Thread.Sleep(1000); }
+                Program.input_busy = true;
+                for (int i1=0; i1 < wi; i1++)
+                {
+                    if (w[i1].answer == null) { w[i1].answer = ""; }
+                    if (w[i1].answer != "") { continue; }
+                    for (int i2 = 0; i2 < wi; i2++)
+                    {
+                        if (w[i2].answer == null) { w[i2].answer = ""; }
+                        if (w[i2].answer != "") { continue; }
+                        if (i1 == i2) { continue; }
+                        // разные  i1 i2, ответов не было
+                        List<string> logo1 = is_logogrif(w[i1].w_find, w[i2].w_find);
+                        if (logo1.Count != 0)
+                        {
+                            foreach (string ss9 in logo1)
+                            {
+                                if (Program.try_form_send(w[i1].level, ss9))
+                                {
+                                    w[i1].answer = ss9; w[i2].answer = ss9;
+                                }
+                            }
+                        }
+                    }
+                }
+                Program.input_busy = false;
+                r = new List<Program.words>(w);
+
                 r = Program.words_find_base(r);
-                r = Program.words_to_engine(r, "base");
                 r = Program.words_base_assoc(r);
-                r = Program.words_to_engine(r, "assoc");
+
+                w = r.ToArray();
+                wi = w.Length;
+                for (int i1 = 0; i1 < wi; i1++)
+                {
+                    w[i1].w_find.AddRange(w[i1].w_base);
+                    w[i1].w_find.AddRange(w[i1].w_assoc);
+                }
+                while (Program.input_busy) { System.Threading.Thread.Sleep(1000); }
+                Program.input_busy = true;
+                for (int i1 = 0; i1 < wi; i1++)
+                {
+                    if (w[i1].answer == null) { w[i1].answer = ""; }
+                    if (w[i1].answer != "") { continue; }
+                    for (int i2 = 0; i2 < wi; i2++)
+                    {
+                        if (w[i2].answer == null) { w[i2].answer = ""; }
+                        if (w[i2].answer != "") { continue; }
+                        if (i1 == i2) { continue; }
+                        // разные  i1 i2, ответов не было
+                        List<string> logo1 = is_logogrif(w[i1].w_find, w[i2].w_find);
+                        if (logo1.Count != 0)
+                        {
+                            foreach (string ss9 in logo1)
+                            {
+                                if (Program.try_form_send(w[i1].level, ss9))
+                                {
+                                    w[i1].answer = ss9; w[i2].answer = ss9;
+                                }
+                            }
+                        }
+                    }
+                }
+                Program.input_busy = false;
+                r = new List<Program.words>(w);
             }
 
-            Program.Mainform.BeginInvoke(new Action(() => Picture_Buttons_Enable(d)));
-            Program.Mainform.BeginInvoke(new Action(() => Picture_Show_Anwers(d, r)));
+            Program.Mainform.BeginInvoke(new Action(() => Logogrif_Buttons_Enable(d)));
+            Program.Mainform.BeginInvoke(new Action(() => Logogrif_Show_Anwers(d, r)));
 
             return r;
         }
 
-        private void Picture_Show_Anwers(Program.Pictures_data d, List<Program.words> res)
+        private List<string> is_logogrif(List<string> w1, List<string> w2)
+        {
+            List<string> rr = new List<string>();
+            foreach (string s1 in w1)
+            {
+                foreach (string s2 in w2)
+                {
+                    if (s1.Length != (s2.Length+1)) { continue; }
+                    for(int ii=0; ii<=s2.Length; ii++)
+                    {
+                        char[] cc = s1.ToCharArray();
+                        cc[ii] = ' ';
+                        string ss = new string (cc);
+                        ss = ss.Replace(" ","");
+                        if (ss == s2) { rr.Add(s2+" "+s1); }
+                    }
+                }
+            }
+            return rr;
+        }
+
+        private void Logogrif_Show_Anwers(Program.Pictures_data d, List<Program.words> res)
         {
             Data.TextOut.Visible = true;
             Data.BtnSolve.Enabled = false;
@@ -109,22 +193,22 @@ namespace Solver
                 }
                 Data.TextOut.Text += "\r\n";
             }
-            Event_Picture_ChangeSize(null, null);
+            Event_Logogrif_ChangeSize(null, null);
         }
         public Program.Pictures_data Data;
-        public Picture(int level, List<string> urls)//для только решения картинок
+        public Logogrif(int level, List<string> urls)//для только решения картинок
         {
-            if (urls.Count == 0) { MessageBox.Show("В задании нет ни одной ссылки на картинки");  return; }
-            Data.type = "Picture";
+            if (urls.Count == 0) { MessageBox.Show("В задании нет ни одной ссылки на картинки"); return; }
+            Data.type = "logogrif";
             Data.level = level;
             Data.urls = urls;
             Data.Tab = new TabPage();
-            Data.Tab.Text = "Картинки";
+            Data.Tab.Text = "Логогрифы";
             Data.pic_cnt = urls.Count;
             Data.olimp_size = 0; // ?? нужно будет для олимпиек
             Data.BtnSolve = new Button();
             Data.BtnSolve.Text = "Решить";
-            Data.BtnSolve.Click += new EventHandler(Event_Picture_Solve_Click);
+            Data.BtnSolve.Click += new EventHandler(Event_Logogrif_Solve_Click);
             Data.Tab.Controls.Add(Data.BtnSolve);
             Data.Auto = new CheckBox();
             Data.Auto.Text = "авто-вбивать";
@@ -137,7 +221,7 @@ namespace Solver
             Data.Tab.Controls.Add(Data.Auto);
             Data.BtnClose = new Button();
             Data.BtnClose.Text = "Закрыть";
-            Data.BtnClose.Click += new EventHandler(Event_Picture_Close_Click);
+            Data.BtnClose.Click += new EventHandler(Event_Logogrif_Close_Click);
             Data.Tab.Controls.Add(Data.BtnClose);
             Data.pics = new Program.Picture_data[Data.pic_cnt];
             for (int i = 0; i < Data.pic_cnt; i++)
@@ -145,7 +229,7 @@ namespace Solver
                 Data.pics[i].level = Data.level;
                 Data.pics[i].str = 0;
                 Data.pics[i].col = 0;
-                Data.pics[i].cnt = i+1;
+                Data.pics[i].cnt = i + 1;
                 Data.pics[i].init_num = 0;
             }
             Data.prot = Program.prot.none;
@@ -155,18 +239,19 @@ namespace Solver
             Data.init_num.Increment = 1;
             Data.init_num.Value = 1;
             Data.pics[0].init_num = Convert.ToInt32(Data.init_num.Value);
-            Data.init_num.ValueChanged += new EventHandler(Event_Picture_InitNum_Change);
+            Data.init_num.ValueChanged += new EventHandler(Event_Logogrif_InitNum_Change);
             Data.Tab.Controls.Add(Data.init_num);
             Data.pics_list = new ListBox();
             Data.ar_urls = new string[Data.pic_cnt];
             int ii9 = 0;
-            foreach (string u in Data.urls) {
+            foreach (string u in Data.urls)
+            {
                 Data.pics_list.Items.Add(u);
                 Data.ar_urls[ii9] = u;
                 ii9++;
             }
-            Data.pics_list.SelectedIndex = Data.pic_cnt-1;
-            Data.pics_list.SelectedIndexChanged += new EventHandler(Event_Picture_ListPics_Select);
+            Data.pics_list.SelectedIndex = Data.pic_cnt - 1;
+            Data.pics_list.SelectedIndexChanged += new EventHandler(Event_Logogrif_ListPics_Select);
             Data.Tab.Controls.Add(Data.pics_list);
             Data.cb_protect = new ComboBox();
             Data.cb_protect.Items.Add("Без защиты");
@@ -177,7 +262,7 @@ namespace Solver
             Data.cb_protect.Items.Add("слово05");
             Data.cb_protect.Items.Add("слово005");
             Data.cb_protect.SelectedIndex = 0;
-            Data.cb_protect.SelectedIndexChanged += new EventHandler(Event_Picture_Protect_Change);
+            Data.cb_protect.SelectedIndexChanged += new EventHandler(Event_Logogrif_Protect_Change);
             Data.Tab.Controls.Add(Data.cb_protect);
             Data.cb_str = new ComboBox();
             Data.cb_str.Items.Add("Строк");
@@ -191,7 +276,7 @@ namespace Solver
             Data.cb_str.Items.Add("8");
             Data.cb_str.Items.Add("9");
             Data.cb_str.SelectedIndex = 0;
-            Data.cb_str.SelectedIndexChanged += new EventHandler(Event_Picture_Str_Change);
+            Data.cb_str.SelectedIndexChanged += new EventHandler(Event_Logogrif_Str_Change);
             Data.Tab.Controls.Add(Data.cb_str);
             Data.cb_col = new ComboBox();
             Data.cb_col.Items.Add("Колонок");
@@ -205,7 +290,7 @@ namespace Solver
             Data.cb_col.Items.Add("8");
             Data.cb_col.Items.Add("9");
             Data.cb_col.SelectedIndex = 0;
-            Data.cb_col.SelectedIndexChanged += new EventHandler(Event_Picture_Col_Change);
+            Data.cb_col.SelectedIndexChanged += new EventHandler(Event_Logogrif_Col_Change);
             Data.Tab.Controls.Add(Data.cb_col);
             Data.lb_init = new Label();
             Data.lb_init.Text = "Начальный номер:";
@@ -238,34 +323,34 @@ namespace Solver
             Data.TextOut.ScrollBars = ScrollBars.Both;
             Data.Tab.Controls.Add(Data.TextOut);
 
-            Event_Picture_ChangeSize(null, null);
-            Program.Mainform.SizeChanged += new EventHandler(Event_Picture_ChangeSize);
+            Event_Logogrif_ChangeSize(null, null);
+            Program.Mainform.SizeChanged += new EventHandler(Event_Logogrif_ChangeSize);
             Program.Tabs.Controls.Add(Data.Tab);
             Program.Tabs.SelectTab(Program.Tabs.TabCount - 1);
         }
 
-        private void Event_Picture_Protect_Change(object sender, EventArgs e)
+        private void Event_Logogrif_Protect_Change(object sender, EventArgs e)
         {
             switch (Data.cb_protect.SelectedIndex)
             {
-                case 0: Data.prot = Program.prot.none;   break;
+                case 0: Data.prot = Program.prot.none; break;
                 case 1: Data.prot = Program.prot.begin1; break;
                 case 2: Data.prot = Program.prot.begin2; break;
                 case 3: Data.prot = Program.prot.begin3; break;
-                case 4: Data.prot = Program.prot.end1;   break;
-                case 5: Data.prot = Program.prot.end2;   break;
-                case 6: Data.prot = Program.prot.end3;   break;
-                default: Data.prot = Program.prot.none;  break;
+                case 4: Data.prot = Program.prot.end1; break;
+                case 5: Data.prot = Program.prot.end2; break;
+                case 6: Data.prot = Program.prot.end3; break;
+                default: Data.prot = Program.prot.none; break;
             }
         }
-        private void Event_Picture_ListPics_Select(object sender, EventArgs e)
+        private void Event_Logogrif_ListPics_Select(object sender, EventArgs e)
         {
             Data.img.Image = Data.pics[Data.pics_list.SelectedIndex].img;
             Data.init_num.Value = Data.pics[Data.pics_list.SelectedIndex].init_num;
             Data.cb_str.SelectedIndex = Data.pics[Data.pics_list.SelectedIndex].str;
             Data.cb_col.SelectedIndex = Data.pics[Data.pics_list.SelectedIndex].col;
         }
-        private static void Picture_Buttons_Enable(Program.Pictures_data d)                  // меняем оптом доступность кнопок
+        private static void Logogrif_Buttons_Enable(Program.Pictures_data d)                  // меняем оптом доступность кнопок
         {
             d.BtnSolve.Enabled = true;
             d.BtnClose.Enabled = true;
@@ -276,7 +361,7 @@ namespace Solver
             d.pics_list.Enabled = true;
             d.init_num.Enabled = true;
         }
-        private static void Picture_Buttons_Disable(Program.Pictures_data d)                  // меняем оптом доступность кнопок
+        private static void Logogrif_Buttons_Disable(Program.Pictures_data d)                  // меняем оптом доступность кнопок
         {
             d.BtnSolve.Enabled = false;
             d.BtnClose.Enabled = false;
@@ -287,11 +372,11 @@ namespace Solver
             d.pics_list.Enabled = false;
             d.init_num.Enabled = false;
         }
-        private void Event_Picture_Close_Click(object sender, EventArgs e)
+        private void Event_Logogrif_Close_Click(object sender, EventArgs e)
         {
             Data.Tab.Dispose();
         }
-        private void Event_Picture_ChangeSize(object sender, EventArgs e)
+        private void Event_Logogrif_ChangeSize(object sender, EventArgs e)
         {
             Data.BtnSolve.Top = Program.mainform_border;
             Data.BtnSolve.Left = Program.mainform_border;
@@ -352,26 +437,27 @@ namespace Solver
                 Data.img.Height = (Program.GameTab.MainTab.Height - Data.pics_list.Top - 1 * Program.mainform_border) / 2 - Program.mainform_border;
                 Data.TextOut.Height = Data.img.Height;
                 Data.TextOut.Top = Data.img.Bottom + Program.mainform_border;
-            } else
+            }
+            else
             {
                 Data.img.Height = Program.GameTab.MainTab.Height - Data.pics_list.Top - 1 * Program.mainform_border;
                 Data.TextOut.Top = Data.img.Top;
                 Data.TextOut.Height = Data.img.Height;
             }
         }
-        private void Event_Picture_InitNum_Change(object sender, EventArgs e)
+        private void Event_Logogrif_InitNum_Change(object sender, EventArgs e)
         {
             Data.pics[Data.pics_list.SelectedIndex].init_num = Convert.ToInt32(Data.init_num.Value);
         }
-        private void Event_Picture_Str_Change(object sender, EventArgs e)
+        private void Event_Logogrif_Str_Change(object sender, EventArgs e)
         {
             Data.pics[Data.pics_list.SelectedIndex].str = Data.cb_str.SelectedIndex;
         }
-        private void Event_Picture_Col_Change(object sender, EventArgs e)
+        private void Event_Logogrif_Col_Change(object sender, EventArgs e)
         {
             Data.pics[Data.pics_list.SelectedIndex].col = Data.cb_col.SelectedIndex;
         }
-        private void Event_Picture_Solve_Click(object sender, EventArgs e)
+        private void Event_Logogrif_Solve_Click(object sender, EventArgs e)
         {
             //проверим, все ли готово
             for (int i = 0; i < Data.pic_cnt; i++)
@@ -381,14 +467,9 @@ namespace Solver
                 { MessageBox.Show("Для " + (i + 1).ToString() + "-й картинки заполнены не все параметры.."); return; }
             }
             //можно стартовать процессы по собранным данным
-            Picture_Buttons_Disable(Data);
+            Logogrif_Buttons_Disable(Data);
             Program.Log("Начали решать картинки\r\n.\r\n");
-            Task<List<Program.words>> t1 = Task<List<Program.words>>.Factory.StartNew(() => Pictures_Process(Data));
-
-            //List<Program.words> res = t1.Result;
-            //результат ждать нельзя. оно тупит форму. Надо менять на делегата.
-            //тип поставить void
-
+            Task<List<Program.words>> t1 = Task<List<Program.words>>.Factory.StartNew(() => Logogrifs_Process(Data));
         }
 
     }

@@ -144,11 +144,12 @@ namespace Solver
 
             // проверка открытия web-ресурсов
             WebClient wc1 = null;
-            try { wc1 = new WebClient(); }                                  catch { Log("Не удалось создать объект WebClient");             return false; }
+            try { wc1 = new WebClient(); }                                  catch { Log("ERROR: Не удалось создать объект WebClient");      return false; }
             string re1 = "";
             try { re1 = wc1.DownloadString("http://image.google.com/"); }   catch { Log("ERROR: http://image.google.com/ не открывается");  return false; }
             try { re1 = wc1.DownloadString("http://game.en.cx/"); }         catch { Log("ERROR: http://game.en.cx/ не открывается");        return false; }
             try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log("ERROR: http://jpegshare.net/ не открывается");     return false; }
+            try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log("ERROR: http://ipic.su/ не открывается");           return false; }
             try { re1 = wc1.DownloadString("http://goldlit.ru/"); }         catch { Log("ERROR: http://goldlit.ru/ не открывается");        return false; }
             try { re1 = wc1.DownloadString("http://sociation.org/"); }      catch { Log("ERROR: http://sociation.org/ не открывается");     return false; }
             Log("Все необходимые web-ресурсы открываются успешно");
@@ -159,9 +160,12 @@ namespace Solver
 
         public static string[,] actions = {
             //{ "Решать самостоятельно",      "manual" },
-            { "Расчленёнки",                "raschl" },
-            { "Картинки - только решить",   "picture"},
-            { "Картинки + ассоциации",      "picture_association"}
+            { "Расчленёнки",                    "raschl" },
+            { "Картинки - только решить",       "picture"},
+            { "Картинки + ассоциации",          "picture_association"},
+            { "Картинки + логогрифы СОН-СЛОН",  "logogrif"},
+            { "Картинки + метаграммы КОТ-КИТ",  "metagramm"}
+
             };
 
         public struct dEnvInfo
@@ -948,6 +952,14 @@ namespace Solver
             if (type == "picture_association")
             {
                 var R1 = new Association(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
+            }
+            if (type == "logogrif")
+            {
+                var R1 = new Logogrif(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
+            }
+            if (type == "metagramm")
+            {
+                var R1 = new Metagramm(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
             }
         }
         public static void Event_MainFormChangeSize(object sender, EventArgs e)
