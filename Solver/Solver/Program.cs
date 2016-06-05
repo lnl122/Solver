@@ -884,6 +884,7 @@ namespace Solver
         }
         public static bool try_form_send(int lvl, string val)
         {
+            if (lvl < 1) { return false; }
             string url = "http://" + dGame.game_domain + "/gameengines/encounter/play/" + dGame.game_id + "/?level=" + lvl.ToString();
             Random rnd1 = new Random();
             string t1 = get_game_page(url);

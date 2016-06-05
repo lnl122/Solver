@@ -205,7 +205,7 @@ namespace Solver
             Data.Auto = new CheckBox();
             Data.Auto.Text = "авто-вбивать";
             Data.Auto.Checked = true;
-            if (Data.level == -1)
+            if (Data.level < 1)
             {
                 Data.Auto.Checked = false;
                 Data.Auto.Enabled = false;
