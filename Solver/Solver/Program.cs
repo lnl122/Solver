@@ -128,6 +128,16 @@ namespace Solver
                 Log("ERROR: Не удалось определить версию Microsoft Word"); return false;
             }
             Log("Найден Microsoft Word версии " + WordVersion);
+            try { 
+                var wordApp = new Microsoft.Office.Interop.Word.Application();
+                wordApp.Visible = false;
+                wordApp.CheckSpelling("мама мыла раму");
+                wordApp.Quit();
+                Log("Проверка орфографии установлена");
+            } catch
+            {
+                Log("ERROR: Не удалось запустить проверку орфографии, или же проверка русского языка не установлена.."); return false;
+            }
             // проверка орфографии установлена?
             // ???
             // 2do
@@ -212,6 +222,7 @@ namespace Solver
         public struct words
         {
             public int level;
+            public prot prot;
             public int number;
             public string answer;
             public string g_variant;
@@ -221,7 +232,47 @@ namespace Solver
             public List<string> g_words_en_trans;
             public List<string> w_find;
             public List<string> w_base;
+            public List<string> w_base_all;
             public List<string> w_assoc;
+            //public List<string> w_all;
+        }
+        public enum prot { none, begin1, begin2, begin3, end1, end2, end3 };
+        public struct Pictures_data // все картинки одного уровня 1/2/4 штуки для олимпиек
+        {
+            public string type;
+            public int level;//уровень
+            public List<string> urls;//урлы
+            public string[] ar_urls;//урлы
+            public Picture_data[] pics;//структура каждой пикчи, массив
+            public int pic_cnt;//сколько картинок в улах
+            public TabPage Tab;//таб формы
+            public int olimp_size;//размер олимпийки
+            public prot prot; // какая защита
+            public Button BtnSolve;
+            public Button BtnClose;
+            public System.Windows.Forms.CheckBox Auto;//автовбивать
+            public ComboBox cb_str;//строк
+            public ComboBox cb_col;//колонок
+            public ComboBox cb_protect;//защита
+            public ListBox pics_list;//перечень картинок
+            public NumericUpDown init_num;//нач номер
+            public Label lb_str;
+            public Label lb_col;
+            public Label lb_prot;
+            public Label lb_init;
+            public PictureBox img;
+            public TextBox TextOut;
+        }
+        public struct Picture_data // для одной картинки, под распознавание 16/20/25 мелких
+        {
+            public Image img;//пикча
+            public Bitmap bmp;//пикча
+            public int level;//уровень
+            public prot prot; // какая защита
+            public int str;//колво строк
+            public int col;//колво колонок
+            public int cnt;//номер части (для нескольких картинок одного задания)
+            public int init_num;//нач номер картинок
         }
         public static words parse_google_page_words(string gtext2)
         {
@@ -428,6 +479,124 @@ namespace Solver
         public static string upload_file(string filepath)
         {
             return upload_file_ipic(filepath);
+            //return upload_file_jpegshare(filepath);
+        }
+        public static List<Program.words> words_google_to_find(List<Program.words> q)
+        {
+            var wordApp = new Microsoft.Office.Interop.Word.Application();
+            wordApp.Visible = false;
+            List<Program.words> w = new List<Program.words>();
+            foreach (Program.words q1 in q)
+            {
+                // дял всех найденных списков
+                Program.words w1 = q1;
+                w1.g_words_ru = new List<string>();
+                w1.g_words_en = new List<string>();
+                w1.g_words_en_trans = new List<string>();
+                w1.w_find = new List<string>();
+                w1.w_base = new List<string>();
+                w1.w_assoc = new List<string>();
+                foreach (string w2 in w1.g_words)
+                {
+                    //рассмотрим один набор слов для одной картинки
+                    bool bad = false;
+                    //проверим на плохое слово
+                    for (int i = 0; i < Program.bad_words.Length; i++) { if (w2 == Program.bad_words[i]) { bad = true; } }
+                    if (bad) { continue; }
+                    // lang? ru/en
+                    string w3 = w2.ToLower().Replace("ё", "е");
+                    char c1 = w3[0];
+                    char c2 = w3[w3.Length - 1];
+                    if (((c1 >= 'a') && (c1 <= 'z')) || ((c2 >= 'a') && (c2 <= 'z'))) { w1.g_words_en.Add(w3.ToLower()); }
+                    if (((c1 >= 'а') && (c1 <= 'я')) || ((c2 >= 'а') && (c2 <= 'я')))
+                    {
+                        if (wordApp.CheckSpelling(w3)) { w1.g_words_ru.Add(w3); }
+                        else { if (wordApp.CheckSpelling(w3.Substring(0, 1).ToUpper() + w3.Substring(1, w3.Length - 1))) { w1.g_words_ru.Add(w3); } }
+                    }
+                }
+                w1.w_find = w1.g_words_ru;
+                if (w1.g_words_en.Count != 0)
+                {
+                    //переведем их
+                    string tren = "";
+                    foreach (string t3 in w1.g_words_en) { tren = tren + t3 + ". "; }
+                    tren = tren.TrimEnd();
+                    tren = Program.get_trans_word(tren).ToLower();
+                    string[] ar1 = tren.Split('.');
+                    foreach (string ar2 in ar1) { if (ar2 != "") { w1.g_words_en_trans.Add(ar2.TrimStart().TrimEnd()); } }
+                    w1.w_find.AddRange(w1.g_words_en_trans);
+                }
+                //убрать дупы
+                if (w1.w_find != null) { w1.w_find = w1.w_find.Distinct().ToArray().ToList(); }
+                w1.w_find.Remove("");
+                //добавить в решение
+                w.Add(w1);
+            }
+            wordApp.Quit();
+            return w;
+        }
+        public static List<Program.words> words_to_engine(List<Program.words> q, string s)
+        {
+            List<Program.words> w = new List<Program.words>();
+            while (Program.input_busy) { System.Threading.Thread.Sleep(1000); }
+            Program.input_busy = true;
+            foreach (Program.words q1 in q)
+            {
+                Program.words w1 = q1;
+                if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
+                List<string> w2 = new List<string>();
+                if (s == "find") { w2 = w1.w_find; }
+                if (s == "base") { w2 = w1.w_base; }
+                if (s == "assoc") { w2 = w1.w_assoc; }
+                foreach (string w3 in w2)
+                {
+                    bool fl2 = Program.try_form_send(w1.level, set_word_protect(w3, w1.number, w1.prot));
+                    if (fl2)
+                    {
+                        w1.answer = w3;
+                        break;
+                    }
+                }
+                w.Add(w1);
+            }
+            Program.input_busy = false;
+            return w;
+        }
+        public static List<Program.words> words_find_base(List<Program.words> q)
+        {
+            List<Program.words> w = new List<Program.words>();
+            foreach (Program.words q1 in q)
+            {
+                Program.words w1 = q1;
+                w1.w_base = new List<string>();
+                w1.w_base_all = new List<string>();
+                if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
+                string[] ss = Program.get_start_word(String.Join(" ", w1.w_find.Distinct().ToArray())).Split(' ');
+                foreach (string s2 in ss)
+                {
+                    w1.w_base_all.Add(s2);
+                    if (!w1.w_find.Contains(s2)) { w1.w_base.Add(s2); }
+                }
+                w1.w_base_all = new List<string>(w1.w_base_all.Distinct().ToArray());
+                w.Add(w1);
+            }
+            return w;
+        }
+        public static List<Program.words> words_base_assoc(List<Program.words> q)
+        {
+            //List<string> get_assoc_word(string v, int max_res_cnt=10000)
+            List<Program.words> w = new List<Program.words>();
+            foreach (Program.words q1 in q)
+            {
+                Program.words w1 = q1;
+                w1.w_assoc = new List<string>();
+                if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
+                if (w1.w_base_all.Count >= 5) { w.Add(w1); continue; }
+                foreach (string s2 in w1.w_base) { w1.w_assoc.AddRange(Program.get_assoc_word(s2, 10)); }
+                w1.w_assoc = new List<string>(w1.w_assoc.Distinct().ToArray());
+                w.Add(w1);
+            }
+            return w;
         }
         public static string get_start_word(string v)
         {
@@ -466,21 +635,18 @@ namespace Solver
                 }
             }
             cl.Dispose();
-            string v3 = "";
+            List<string> v3 = new List<string>();
             int ii1 = re.IndexOf("Начальная форма");
             while (ii1 != -1)
             {
                 re = re.Substring(ii1);
                 re = re.Substring(re.IndexOf(":") + 1);
-                v3 += (" " + re.Substring(0, re.IndexOf("<")).ToLower().Trim());
+                string v5 = re.Substring(0, re.IndexOf("<")).ToLower().TrimEnd().TrimStart();
+                v3.Add(v5);
                 ii1 = re.IndexOf("Начальная форма");
             }
-            List<string> l3 = new List<string>();
-            string[] ar1 = v3.TrimStart().ToLower().Split(' ');
-            l3 = ar1.ToList();
-            string v4 = String.Join(" ", l3.Distinct().ToArray());
-            v4 = v4.Replace("индульгенция", "").Trim().TrimEnd().TrimStart();
-            return v4;
+            v3.Remove("индульгенция");
+            return String.Join(" ", v3.Distinct().ToArray());
         }
         public static List<string> get_assoc_word(string v, int max_res_cnt=10000)
         {
@@ -542,37 +708,25 @@ namespace Solver
         {
             if (s1 == "") { return ""; }
             WebClient wc1 = new WebClient();
-            
+            wc1.Encoding = System.Text.Encoding.UTF8;
+            wc1.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
+            wc1.Headers.Add("Accept-Language", "ru-ru");
+            wc1.Headers.Add("Content-Language", "ru-ru");
             string w2 = String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair=en|ru", s1.ToLower());
             string re1 = "";
-            bool ffl = true;
-            int iil = 0;
-            while (ffl)
-            {
-                try
-                {
-                    //re1 = wc1.DownloadString(w2);
-                    var re2 = wc1.DownloadStringTaskAsync(w2);
-                    re1 = re2.Result;
-                    ffl = false;
-                }
-                catch
-                {
-                    Thread.Sleep(1000);
-                    iil++;
-                    if (iil == 15)
-                    {
-                        Log("ERROR: www.google.com/translate_t? вызвал наш таймаут в секунду");
-                        re1 = "";
-                        ffl = false;
-                    }
-                }
-            }
+            try { re1 = wc1.DownloadString(w2); } catch { re1 = ""; Log("ERROR: www.google.com/translate_t? вызвал наш таймаут в секунду"); }
             if (re1 == "") { return ""; }
-            re1 = re1.Substring(re1.IndexOf("<span title=\"") + "<span title=\"".Length);
-            re1 = re1.Substring(re1.IndexOf(">") + 1);
-            re1 = re1.Substring(0, re1.IndexOf("</span>"));
-            return re1.ToLower().Trim();
+            string ans = "";
+            int ii7 = re1.IndexOf("<span title=\"");
+            while (ii7 != -1) {
+                re1 = re1.Substring(ii7 + "<span title=\"".Length);
+                re1 = re1.Substring(re1.IndexOf(">") + 1);
+                string w12 = re1.Substring(0, re1.IndexOf("</span>"));//word
+                //if (s1.IndexOf(w12) == -1) { ans = ans + w12.ToLower().Replace(".", "").TrimStart().TrimEnd() + " "; }
+                if (s1.IndexOf(w12.Replace(".", "").Replace(" ", "")) == -1) { ans = ans + w12.ToLower() + " "; }
+                ii7 = re1.IndexOf("<span title=\"");
+            }
+            return ans.TrimEnd();
         }
         public static string get_google_url_page(string url)
         {
@@ -709,18 +863,18 @@ namespace Solver
             }
             return L1;
         }
-        public static string set_word_protect(string v, int num, Picture.prot p)
+        public static string set_word_protect(string v, int num, Program.prot p)
         {
             string vv = "000";
             switch (p)
             {
-                case Picture.prot.none      : return v;
-                case Picture.prot.begin1    : return num.ToString() + v;
-                case Picture.prot.begin2    : vv += num.ToString(); return vv.Substring(vv.Length - 2, 2) + v;
-                case Picture.prot.begin3    : vv += num.ToString(); return vv.Substring(vv.Length - 3, 3) + v;
-                case Picture.prot.end1      : return v + num.ToString();
-                case Picture.prot.end2      : vv += num.ToString(); return v + vv.Substring(vv.Length - 2, 2);
-                case Picture.prot.end3      : vv += num.ToString(); return v + vv.Substring(vv.Length - 3, 3);
+                case Program.prot.none      : return v;
+                case Program.prot.begin1    : return num.ToString() + v;
+                case Program.prot.begin2    : vv += num.ToString(); return vv.Substring(vv.Length - 2, 2) + v;
+                case Program.prot.begin3    : vv += num.ToString(); return vv.Substring(vv.Length - 3, 3) + v;
+                case Program.prot.end1      : return v + num.ToString();
+                case Program.prot.end2      : vv += num.ToString(); return v + vv.Substring(vv.Length - 2, 2);
+                case Program.prot.end3      : vv += num.ToString(); return v + vv.Substring(vv.Length - 3, 3);
                 default                     : return v;
             }
         }
