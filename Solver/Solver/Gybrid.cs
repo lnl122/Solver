@@ -415,7 +415,7 @@ namespace Solver
             Data.img.Width = Program.GameTab.MainTab.Width - mm - 3 * Program.mainform_border;
             Data.TextOut.Left = Data.img.Left;
             Data.TextOut.Width = Data.img.Width;
-            if (Data.TextOut.Visible)
+            if (Data.Tab.Text.Substring(Data.Tab.Text.Length - 1, 1) == "#")
             {
                 Data.img.Height = (Program.GameTab.MainTab.Height - Data.pics_list.Top - 1 * Program.mainform_border) / 2 - Program.mainform_border;
                 Data.TextOut.Height = Data.img.Height;

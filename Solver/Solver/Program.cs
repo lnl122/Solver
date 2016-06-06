@@ -937,6 +937,7 @@ namespace Solver
                     }
                 }
             }
+            Log("bad_answer="+ val);
             return false;
         }
 
