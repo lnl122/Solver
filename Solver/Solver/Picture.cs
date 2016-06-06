@@ -109,6 +109,7 @@ namespace Solver
                 }
                 Data.TextOut.Text += "\r\n";
             }
+            Data.Tab.Text = Data.Tab.Text + " #";
             Event_Picture_ChangeSize(null, null);
         }
         public Program.Pictures_data Data;
@@ -119,7 +120,7 @@ namespace Solver
             Data.level = level;
             Data.urls = urls;
             Data.Tab = new TabPage();
-            Data.Tab.Text = "Картинки";
+            Data.Tab.Text = level.ToString() + " : " + "Картинки";
             Data.pic_cnt = urls.Count;
             Data.olimp_size = 0; // ?? нужно будет для олимпиек
             Data.BtnSolve = new Button();

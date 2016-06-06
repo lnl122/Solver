@@ -131,6 +131,7 @@ namespace Solver
                 }
                 Data.TextOut.Text += "\r\n";
             }
+            Data.Tab.Text = Data.Tab.Text + " #";
             Event_Association_ChangeSize(null, null);
         }
 
@@ -142,7 +143,7 @@ namespace Solver
             Data.level = level;
             Data.urls = urls;
             Data.Tab = new TabPage();
-            Data.Tab.Text = "Ассоциации";
+            Data.Tab.Text = level.ToString() + " : " + "Олимпийка";
             Data.pic_cnt = urls.Count;
             Data.olimp_size = 0; // ?? нужно будет для олимпиек
             Data.BtnSolve = new Button();

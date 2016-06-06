@@ -190,6 +190,7 @@ namespace Solver
                 }
                 Data.TextOut.Text += "\r\n";
             }
+            Data.Tab.Text = Data.Tab.Text + " #";
             Event_Metagramm_ChangeSize(null, null);
         }
         public Program.Pictures_data Data;
@@ -200,7 +201,7 @@ namespace Solver
             Data.level = level;
             Data.urls = urls;
             Data.Tab = new TabPage();
-            Data.Tab.Text = "Метаграммы";
+            Data.Tab.Text = level.ToString() + " : " + "Метаграммы";
             Data.pic_cnt = urls.Count;
             Data.olimp_size = 0; // ?? нужно будет для олимпиек
             Data.BtnSolve = new Button();

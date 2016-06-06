@@ -44,7 +44,7 @@ namespace Solver
             Data.Tab = new TabPage();
             Data.level = level;
             Data.wrd_cnt = 1;
-            Data.Tab.Text = "Расчлененки";
+            Data.Tab.Text = level.ToString() + " : " + "Расчлененки";
             Data.BtnSolve = new Button();
             Data.BtnSolve.Text = "Решить";
             Data.BtnSolve.Click += new EventHandler(Event_Raschl_Solve_Click);
