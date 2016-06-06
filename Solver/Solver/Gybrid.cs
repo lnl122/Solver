@@ -150,7 +150,7 @@ namespace Solver
                     //if (s2.Substring(0, 3) == s1.Substring(s1l - 3)) { rr.Add(s1 + s2.Substring(3)); }
                 }
             }
-            return new List<string>(rr.Distinct().ToArray()); ;
+            return new List<string>(rr.Distinct().ToArray());
         }
 
         private void Gybrid_Show_Anwers(Program.Pictures_data d, List<Program.words> res)
@@ -181,11 +181,11 @@ namespace Solver
         public Gybrid(int level, List<string> urls)//для только решения картинок
         {
             if (urls.Count == 0) { MessageBox.Show("В задании нет ни одной ссылки на картинки"); return; }
-            Data.type = "Metagramm";
+            Data.type = "Gybrid";
             Data.level = level;
             Data.urls = urls;
             Data.Tab = new TabPage();
-            Data.Tab.Text = "Метаграммы";
+            Data.Tab.Text = "Гибриды";
             Data.pic_cnt = urls.Count;
             Data.olimp_size = 0; // ?? нужно будет для олимпиек
             Data.BtnSolve = new Button();

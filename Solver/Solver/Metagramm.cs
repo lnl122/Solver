@@ -85,14 +85,13 @@ namespace Solver
                 {
                     if (w[i1].answer == null) { w[i1].answer = ""; }
                     if (w[i1].answer != "") { continue; }
-                    for (int i2 = 0; i2 < wi; i2++)
+                    for (int i2 = i1; i2 < wi; i2++)
                     {
                         if (w[i2].answer == null) { w[i2].answer = ""; }
                         if (w[i2].answer != "") { continue; }
                         if (i1 == i2) { continue; }
                         // разные  i1 i2, ответов не было
                         List<string> logo1 = is_Metagramm(w[i1].w_find, w[i2].w_find);
-                        logo1 = new List<string>(logo1.Distinct().ToArray());
                         if (logo1.Count != 0) { foreach (string ss9 in logo1) { if (Program.try_form_send(w[i1].level, ss9)) { w[i1].answer = ss9; w[i2].answer = ss9; break; } } }
 
                     }
@@ -117,14 +116,13 @@ namespace Solver
                 {
                     if (w[i1].answer == null) { w[i1].answer = ""; }
                     if (w[i1].answer != "") { continue; }
-                    for (int i2 = 0; i2 < wi; i2++)
+                    for (int i2 = i1; i2 < wi; i2++)
                     {
                         if (w[i2].answer == null) { w[i2].answer = ""; }
                         if (w[i2].answer != "") { continue; }
                         if (i1 == i2) { continue; }
                         // разные  i1 i2, ответов не было
                         List<string> logo1 = is_Metagramm(w[i1].w_find, w[i2].w_find);
-                        logo1 = new List<string>(logo1.Distinct().ToArray());
                         if (logo1.Count != 0) { foreach (string ss9 in logo1) { if (Program.try_form_send(w[i1].level, ss9)) { w[i1].answer = ss9; w[i2].answer = ss9; break; } } }
                     }
                 }
@@ -156,11 +154,18 @@ namespace Solver
                         string ss2 = new string(c2);
                         ss1 = ss1.Replace(" ", "");
                         ss2 = ss2.Replace(" ", "");
-                        if ((ss1 == ss2) && (s1 != s2)) { rr.Add(s2 + " " + s1); }
+                        if ((ss1 == ss2) && (s1 != s2))
+                        {
+                            List<string> tt = new List<string>();
+                            tt.Add(s1);
+                            tt.Add(s2);
+                            tt.Sort();
+                            rr.Add(tt.ToArray()[0] + " " + tt.ToArray()[1]);
+                        }
                     }
                 }
             }
-            return rr;
+            return new List<string>(rr.Distinct().ToArray());
         }
 
         private void Metagramm_Show_Anwers(Program.Pictures_data d, List<Program.words> res)
