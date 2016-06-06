@@ -1253,6 +1253,8 @@ namespace Solver
                         if (page.IndexOf("Капитан команды не включил вас в состав для участия в этой игре.") != -1) { MessageBox.Show("Капитан команды не включил вас в состав для участия в этой игре.."); continue; }
                         if (page.IndexOf("<span id=\"Panel_lblGameError\">") != -1) { MessageBox.Show("Эта игра ещё не началась.."); continue; }
                         if (page.IndexOf("Вход в игру произойдет автоматически") != -1) { MessageBox.Show("Эта игра ещё не началась.."); continue; }
+                        if (page.IndexOf("Ошибка. Состав вашей команды превышает") != -1) { MessageBox.Show("Состав вашей команды превышает установленный максимум.."); continue; }
+                        
                         //определим количтсво уровней
                         string q_lvl = page.Substring(page.IndexOf("<body")).Replace("\r", "").Replace("\n", "").Replace("\t", "");
                         string t1 = "<ul class=\"section level\">";
@@ -1269,8 +1271,7 @@ namespace Solver
                         fl = false;
                         GameTab.BtnGame.Enabled = false;
                         // в лог
-                        //MessageBox.Show("Открыта игра " + dGame.userid);
-                        Log("Открыта игра " + dGame.userid);
+                        Log("Открыта игра " + dGame.game_id);
                         string temppath = Env.local_path + "\\pics"; if (!Directory.Exists(temppath)) { Directory.CreateDirectory(temppath); }
                         //temppath = temppath + "\\" + dGame.game_id;  if (!Directory.Exists(temppath)) { Directory.CreateDirectory(temppath); }
                         //for (int i8 = 0; i8 <= dGame.game_levels; i8++) { if (!Directory.Exists(temppath+"\\"+i8.ToString())) { Directory.CreateDirectory(temppath + "\\" + i8.ToString()); } }
