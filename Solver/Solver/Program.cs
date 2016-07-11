@@ -587,6 +587,26 @@ namespace Solver
             }
             return w;
         }
+        public static List<Program.words> words_find_base_s(List<Program.words> q)
+        {
+            List<Program.words> w = new List<Program.words>();
+            foreach (Program.words q1 in q)
+            {
+                Program.words w1 = q1;
+                w1.w_base = new List<string>();
+                w1.w_base_all = new List<string>();
+                if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
+                string[] ss = Program.get_start_word_s(String.Join(" ", w1.w_find.Distinct().ToArray())).Split(' ');
+                foreach (string s2 in ss)
+                {
+                    w1.w_base_all.Add(s2);
+                    if (!w1.w_find.Contains(s2)) { w1.w_base.Add(s2); }
+                }
+                w1.w_base_all = new List<string>(w1.w_base_all.Distinct().ToArray());
+                w.Add(w1);
+            }
+            return w;
+        }
         public static List<Program.words> words_base_assoc(List<Program.words> q)
         {
             //List<string> get_assoc_word(string v, int max_res_cnt=10000)
@@ -608,8 +628,8 @@ namespace Solver
             Encoding utf8 = Encoding.UTF8;
 
             string v2 = "";
-            v = "индульгенция " + v;
             if (v == "") { return ""; }
+            v = "индульгенция " + v;
             byte[] b4 = utf8.GetBytes(v.ToLower());
             for (int j = 0; j < b4.Length; j++)
             {
@@ -650,6 +670,62 @@ namespace Solver
                 v3.Add(v5);
                 ii1 = re.IndexOf("Начальная форма");
             }
+            v3.Remove("индульгенция");
+            return String.Join(" ", v3.Distinct().ToArray());
+        }
+        public static string get_start_word_s(string v)
+        {
+            Encoding utf8 = Encoding.UTF8;
+
+            string v2 = "";
+            if (v == "") { return ""; }
+            v = "индульгенция " + v;
+            byte[] b4 = utf8.GetBytes(v.ToLower());
+            for (int j = 0; j < b4.Length; j++)
+            {
+                if (b4[j] != 32)
+                {
+                    v2 += "%" + b4[j].ToString("X");
+                }
+                else
+                {
+                    v2 += "+";
+                }
+            }
+            v2 = "http://goldlit.ru/component/slog?words=" + v2;
+            WebClient cl = new WebClient();
+            cl.Encoding = System.Text.Encoding.UTF8;
+            bool ffl = true;
+            string re = "";
+            while (ffl)
+            {
+                try
+                {
+                    re = cl.DownloadString(v2);
+                    ffl = false;
+                }
+                catch
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+            cl.Dispose();
+            List<string> v3 = new List<string>();
+
+
+            int ii1 = re.IndexOf("Начальная форма");
+            while (ii1 != -1)
+            {
+                re = re.Substring(ii1);
+                re = re.Substring(re.IndexOf(":") + 1);
+                string v5 = re.Substring(0, re.IndexOf("<"));
+                re = re.Substring(re.IndexOf("Часть речи") + 1);
+                re = re.Substring(re.IndexOf(":") + 1);
+                v3.Add(v5.ToLower().TrimEnd().TrimStart());
+                ii1 = re.IndexOf("Начальная форма");
+            }
+
+
             v3.Remove("индульгенция");
             return String.Join(" ", v3.Distinct().ToArray());
         }

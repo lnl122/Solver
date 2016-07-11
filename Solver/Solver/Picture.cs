@@ -1,4 +1,5 @@
 ﻿using System;
+
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
@@ -61,6 +62,7 @@ namespace Solver
             }
             return r2;
         } // вход - структура одной картинки, выход - список структур о словах
+
         public List<Program.words> Pictures_Process(Program.Pictures_data d) // вход структура с урлами всех картинок, без колонок/строк и прочего выход - список структур о словах
         {
             var Tasks2 = new List<Task<List<Program.words>>>();
@@ -74,8 +76,8 @@ namespace Solver
             r = Program.words_google_to_find(r); // eng/rus/bad sorting
             if (d.Auto.Checked)
             {
-                r = Program.words_to_engine(r, "find");
-                r = Program.words_find_base(r);
+                //r = Program.words_to_engine(r, "find");
+                r = Program.words_find_base_s(r);
                 r = Program.words_to_engine(r, "base");
                 r = Program.words_base_assoc(r);
                 r = Program.words_to_engine(r, "assoc");
@@ -112,6 +114,7 @@ namespace Solver
             Data.Tab.Text = Data.Tab.Text + " #";
             Event_Picture_ChangeSize(null, null);
         }
+
         public Program.Pictures_data Data;
         public Picture(int level, List<string> urls)//для только решения картинок
         {

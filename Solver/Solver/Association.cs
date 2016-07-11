@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Windows.Forms;
 using System.Drawing;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 
 namespace Solver
 {
