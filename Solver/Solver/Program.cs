@@ -552,6 +552,7 @@ namespace Solver
                 List<string> w2 = new List<string>();
                 if (s == "find") { w2 = w1.w_find; }
                 if (s == "base") { w2 = w1.w_base; }
+                if (s == "base_all") { w2 = w1.w_base_all; }
                 if (s == "assoc") { w2 = w1.w_assoc; }
                 foreach (string w3 in w2)
                 {
@@ -718,10 +719,11 @@ namespace Solver
             {
                 re = re.Substring(ii1);
                 re = re.Substring(re.IndexOf(":") + 1);
-                string v5 = re.Substring(0, re.IndexOf("<"));
+                string v5 = re.Substring(0, re.IndexOf("<")).ToLower().TrimEnd().TrimStart();
                 re = re.Substring(re.IndexOf("Часть речи") + 1);
                 re = re.Substring(re.IndexOf(":") + 1);
-                v3.Add(v5.ToLower().TrimEnd().TrimStart());
+                string v5_s = re.Substring(0, re.IndexOf("<")).ToLower().TrimEnd().TrimStart();
+                if (v5_s == "существительное") { v3.Add(v5); }
                 ii1 = re.IndexOf("Начальная форма");
             }
 
@@ -962,6 +964,11 @@ namespace Solver
         public static bool try_form_send(int lvl, string val)
         {
             if (lvl < 1) { return false; }
+            if (val.Length <= 3) { return false; }
+            if ( ( (val[0] >= 'a') && (val[0] <= 'z') ) || ((val[val.Length - 1] >= 'a') && (val[val.Length - 1] <= 'z')) ) { return false; }
+            if ( ( (val[0] >= '0') && (val[0] <= '9')) || ((val[val.Length - 1] >= '0') && (val[val.Length - 1] <= '9'))) { return false; }
+            val = val.Replace('ё','е');
+
             string url = "http://" + dGame.game_domain + "/gameengines/encounter/play/" + dGame.game_id + "/?level=" + lvl.ToString();
             Random rnd1 = new Random();
             string t1 = get_game_page(url);
@@ -1028,10 +1035,10 @@ namespace Solver
             {
                 var R1 = new Picture(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
             }
-            if (type == "picture_association")
-            {
-                var R1 = new Association(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
-            }
+            //if (type == "picture_association")
+            //{
+            //    var R1 = new Association(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
+            //}
             if (type == "logogrif")
             {
                 var R1 = new Logogrif(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));

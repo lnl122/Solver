@@ -74,13 +74,14 @@ namespace Solver
             List<Program.words> r = new List<Program.words>();
             foreach (Task<List<Program.words>> t8 in Tasks2) { foreach (Program.words r8 in t8.Result) { r.Add(r8); } }
             r = Program.words_google_to_find(r); // eng/rus/bad sorting
+
+            r = Program.words_find_base_s(r);
             if (d.Auto.Checked)
             {
                 //r = Program.words_to_engine(r, "find");
-                r = Program.words_find_base_s(r);
-                r = Program.words_to_engine(r, "base");
-                r = Program.words_base_assoc(r);
-                r = Program.words_to_engine(r, "assoc");
+                r = Program.words_to_engine(r, "base_all");
+                //r = Program.words_base_assoc(r);
+                //r = Program.words_to_engine(r, "assoc");
             }
 
             Program.Mainform.BeginInvoke(new Action(() => Picture_Buttons_Enable(d)));
