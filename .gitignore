@@ -21,11 +21,12 @@
 [Xx]86/
 [Bb]uild/
 bld/
-[Bb]in/
+#[Bb]in/
 [Oo]bj/
 
 
 *.vshost*
+*.exe.config
 *.pdb
 *.gif
 *.jpg
