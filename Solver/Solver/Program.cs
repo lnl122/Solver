@@ -162,10 +162,12 @@ namespace Solver
             //{ "Решать самостоятельно",      "manual" },
             { "Расчленёнки",                    "raschl" },
             { "Картинки - только решить",       "picture"},
-            { "Картинки + ассоциации",          "picture_association"},
+            { "* Картинки + ассоциации *",      "picture_association"},
             { "Картинки + логогрифы СОН-СЛОН",  "logogrif"},
             { "Картинки + метаграммы КОТ-КИТ",  "metagramm"},
-            { "Картинки + гибриды оСПАржа",     "gybrid"}
+            { "Картинки + гибриды карТОНус",    "gybrid"},
+            { "* Кубрая *",                     "kubray"},
+            { "Гапоифика - названия книг",      "gapoifika_books"}
 
             };
 
@@ -242,6 +244,20 @@ namespace Solver
             //public List<string> w_all;
         }
         public enum prot { none, begin1, begin2, begin3, end1, end2, end3 };
+        public struct GapoifikaBooks_data
+        {
+            public string type;
+            public int level;//уровень
+            public string def;
+            public List<string> words;
+            public List<string> answers;
+            public TabPage Tab;//таб формы
+            public Button BtnSolve;
+            public Button BtnClose;
+            public System.Windows.Forms.CheckBox Auto;//автовбивать
+            public TextBox TextIn;
+            public TextBox TextOut;
+        }
         public struct Pictures_data // все картинки одного уровня 1/2/4 штуки для олимпиек
         {
             public string type;
@@ -1050,6 +1066,10 @@ namespace Solver
             if (type == "gybrid")
             {
                 var R1 = new Gybrid(GameTab.LvlList.SelectedIndex, get_list_of_urls_from_text(GameTab.LvlText.Text.ToString()));
+            }
+            if (type == "gapoifika_books")
+            {
+                var R1 = new GapoifikaBooks(GameTab.LvlList.SelectedIndex, GameTab.LvlText.Text);
             }
             //
         }
