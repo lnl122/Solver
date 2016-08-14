@@ -1,30 +1,35 @@
-﻿using System;
-//using Microsoft.Office.Interop.Word;
-using System.Collections.Generic;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace TestComponents
 {
+    // need COM Reference "Microsoft.Word.14.Object.Library"
+    //
+    // public SpellChecker()
+    // public void Close()
+    // public void LoadDictionary(string DictPath)
+    // public void SaveDictionary()
+    // public List<string> Check(List<string> InnerWordList)
+    // public bool Check(string SingleWord)
+    // public bool CheckOne(string SingleWord)
+    //
     class SpellChecker
     {
         // словари - загружаемый и создающийся в процессе работы
-        static List<string> dict1 = new List<string>();
-        static List<string> dict2 = new List<string>();
-
+        private static List<string> dict1 = new List<string>();
+        private static List<string> dict2 = new List<string>();
         // путь к словарю
         private static string DictionaryPath = "";
         // первое создание объекта уже было?
         private static bool isObjectReady = false;
         // словарь был ли загружен?
         private static bool isDicionaryLoaded = false;
+
         // внешний объект
         private Microsoft.Office.Interop.Word.Application WordApp = null;
 
         // конструктор
-        // вход - путь к словарю или пусто
         // выход - объект
-        public SpellChecker(string DictPath = "")
+        public SpellChecker()
         {
             //инициализация одного объекта, если ранее не инициализировали
             if (isObjectReady == false)
@@ -32,27 +37,6 @@ namespace TestComponents
                 // если Ворд есть
                 if (CheckMsWord() == true)
                 {
-                    // если словарь не загружен
-                    if (isDicionaryLoaded == false)
-                    {
-                        // выполнить загрузку словаря в dict
-                        if (DictPath != "")
-                        {
-                            // проверить путь на валидность
-                            if (System.IO.File.Exists(DictPath) == true)
-                            {
-                                string[] dict; // временный массив
-                                dict = System.IO.File.ReadAllLines(DictPath);
-                                DictionaryPath = DictPath;
-                                // переносим в List
-                                foreach (string s1 in dict)
-                                {
-                                    dict1.Add(s1.ToLower());
-                                }
-                                isDicionaryLoaded = true;
-                            }
-                        }
-                    }
                     isObjectReady = true;
                 }
             }
@@ -60,18 +44,41 @@ namespace TestComponents
             {
                 WordApp = new Microsoft.Office.Interop.Word.Application();
             }
+                
+        }
+
+        // чтение словаря
+        public void LoadDictionary(string DictPath)
+        {
+            // если словарь не загружен
+            if (isDicionaryLoaded == false)
+            {
+                // проверить путь на валидность
+                if (System.IO.File.Exists(DictPath) == true)
+                {
+                    string[] dict; // временный массив
+                    dict = System.IO.File.ReadAllLines(DictPath);
+                    DictionaryPath = DictPath;
+                    // переносим в List
+                    foreach (string s1 in dict)
+                    {
+                        dict1.Add(s1.ToLower());
+                    }
+                    isDicionaryLoaded = true;
+                }
+            }
         }
 
         // деструктор
         public void Close()
         {
-            Flush();
+            //SaveDictionary();
             WordApp.Quit();
             WordApp = null;
         }
 
         // обновление словаря на диске
-        public void Flush()
+        public void SaveDictionary()
         {
             // объединяем два словаря (без пустых строк) и сохраняем в файл DictionaryPath
             List<string> dict_out = new List<string>();
