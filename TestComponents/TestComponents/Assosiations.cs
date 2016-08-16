@@ -49,6 +49,7 @@ namespace TestComponents
         // чтение словаря
         public static void LoadDictionary(string DictPath)
         {
+            if (isObjectReady == false) { return; }
             // если словарь не загружен
             if (isDicionaryLoaded == false)
             {
@@ -91,6 +92,7 @@ namespace TestComponents
         // обновление словаря на диске
         public static void SaveDictionary()
         {
+            if (isObjectReady == false) { return; }
             string[] ar = new string[words.Count];
             for(int i=0; i< words.Count; i++)
             {
@@ -154,7 +156,7 @@ namespace TestComponents
         private static List<string> ParsePage(string page)
         {
             List<string> result = new List<string>();
-            if(page.Length <= 1)
+            if (page.Length <= 1)
             {
                 return result;
             }
@@ -202,6 +204,7 @@ namespace TestComponents
         public static List<string> Get2(List<string> list1, List<string> list2)
         {
             List<string> result = new List<string>();
+            if (isObjectReady == false) { return result; }
             List<string> l1 = Get(list1);
             List<string> l2 = Get(list2);
             foreach (string st in l1)
@@ -219,6 +222,7 @@ namespace TestComponents
         public static List<string> Get2(string str1, string str2)
         {
             List<string> result = new List<string>();
+            if (isObjectReady == false) { return result; }
             List<string> list1 = Get(str1);
             List<string> list2 = Get(str2);
             foreach(string st in list1)
@@ -237,7 +241,8 @@ namespace TestComponents
         public static List<string> Get(List<string> list, int count = 999)
         {
             List<string> result = new List<string>();
-            foreach(string str in list)
+            if (isObjectReady == false) { return result; }
+            foreach (string str in list)
             {
                 List<string> t1 = Get(str, count);
                 result.AddRange(t1);
@@ -268,6 +273,7 @@ namespace TestComponents
         public static List<string> Get(string word, int count = 999)
         {
             List<string> result = new List<string>();
+            if (isObjectReady == false) { return result; }
             if (word.Length < 1)
             {
                 return result;

@@ -17,18 +17,44 @@ namespace TestComponents
         //Tools.GetEnvInfo();
         //if (!Tools.CheckComponents()) { MessageBox.Show("Не все необхдимые компоненты установлены на ПК.\r\nПроверьте лог-файл."); return; }
 
+        public static void ddd(string a, string b)
+        {
+            List<string> c = Associations.Get2(Associations.Get(a,3), Associations.Get(b,3));
+            string d = "";
+            foreach (string ff in c)
+                {
+                d = d + " " + ff;
+                }
+            string d1 = "";
+            c = Associations.Get(a);
+            foreach (string ff in c)
+            {
+                d1= d1 + " " + ff;
+            }
+            string d2 = "";
+            c = Associations.Get(b);
+            foreach (string ff in c)
+            {
+                d2 = d2 + " " + ff;
+            }
+            Console.WriteLine(a + "+" + b + "= " + d);
+            Console.WriteLine(a + " = " + d1);
+            Console.WriteLine(b + " = " + d2);
+            Console.WriteLine("");
+        }
 
         static void Main(string[] args)
         {
+            Associations.Init();
+            Associations.LoadDictionary(@"C:\assoc.txt");
 
-            List<string> a1 = new List<string>();
-            a1.Add("flame");
-            a1.Add("spell");
-            a1.Add("djhfkr");
-            a1.Add("more");
-            a1.Add("glass");
-            var a2 = Google.TranslateEnRu(a1);
-            a2 = a2;
+            ddd("вездеход", "колдун");
+            ddd("оператор", "ванна");
+            ddd("паровоз", "кран");
+            ddd("машинист", "голосование");
+
+
+
             /*
             string dir = "C:\\1\\qw";
             string[] dirs = System.IO.Directory.GetFiles(dir);

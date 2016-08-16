@@ -15,8 +15,8 @@ namespace TestComponents
     class SpellChecker
     {
         // словари - загружаемый и создающийся в процессе работы
-        private static List<string> dict1 = new List<string>();
-        private static List<string> dict2 = new List<string>();
+        private static List<string> dict1;
+        private static List<string> dict2;
         // путь к словарю
         private static string DictionaryPath = "";
         // первое создание объекта уже было?
@@ -27,29 +27,34 @@ namespace TestComponents
         // внешний объект
         private Microsoft.Office.Interop.Word.Application WordApp = null;
 
+        public static void Init()
+        {
+            if (isObjectReady == false)
+            {
+                if (CheckMsWord() == true)
+                {
+                    dict1 = new List<string>();
+                    dict2 = new List<string>();
+                    isObjectReady = true;
+                }
+            }
+        }
+
         // конструктор
         // выход - объект
         public SpellChecker()
         {
             //инициализация одного объекта, если ранее не инициализировали
-            if (isObjectReady == false)
-            {
-                // если Ворд есть
-                if (CheckMsWord() == true)
-                {
-                    isObjectReady = true;
-                }
-            }
             if (isObjectReady == true)
             {
                 WordApp = new Microsoft.Office.Interop.Word.Application();
             }
-                
         }
 
         // чтение словаря
-        public void LoadDictionary(string DictPath)
+        public static void LoadDictionary(string DictPath)
         {
+            if (isObjectReady == false) { return; }
             // если словарь не загружен
             if (isDicionaryLoaded == false)
             {
@@ -78,8 +83,9 @@ namespace TestComponents
         }
 
         // обновление словаря на диске
-        public void SaveDictionary()
+        public static void SaveDictionary()
         {
+            if (isObjectReady == false) { return; }
             // объединяем два словаря (без пустых строк) и сохраняем в файл DictionaryPath
             List<string> dict_out = new List<string>();
             dict_out.AddRange(dict1);
@@ -92,7 +98,7 @@ namespace TestComponents
 
         // проверим существование и работу спелчекера
         // выход - true/false
-        private bool CheckMsWord()
+        private static bool CheckMsWord()
         {
             try
             {
@@ -113,7 +119,7 @@ namespace TestComponents
         {
             //результат
             List<string> res = new List<string>();
-
+            if (isObjectReady == false) { return res; }
             // для всех слов
             foreach (string SingleWord in InnerWordList)
             {
@@ -162,6 +168,7 @@ namespace TestComponents
         // выход - true/false
         public bool Check(string SingleWord)
         {
+            if (isObjectReady == false) { return false; }
             // нормализуем входящее слово
             string NormalWord = SingleWord.ToLower().Trim();
             // отсекаем пустые слова
@@ -204,6 +211,7 @@ namespace TestComponents
         // слово не нормализуется, не проверяется по словарю
         public bool CheckOne(string SingleWord)
         {
+            if (isObjectReady == false) { return false; }
             // отсекаем пустые слова
             if (SingleWord == "")
             {
