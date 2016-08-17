@@ -12,7 +12,11 @@ namespace Solver
         int image_border_width = 5;
         public Program.words Picture_Process_One(string path)
         {
-            return Program.parse_google_page_words(Program.get_google_url_page(Program.upload_file(path)));
+            List<string> wrd = Google.GetImageDescription(path);
+            Program.words wrds = new Program.words();
+            wrds.g_words = wrd;
+            wrds.w_find = wrd;
+            return wrds;
         } // вход - локальный путь к одной части, выход - структура о словах
         public List<Program.words> Picture_Process(Program.Picture_data d)
         {
@@ -73,7 +77,6 @@ namespace Solver
             Task.WaitAll(Tasks2.ToArray());
             List<Program.words> r = new List<Program.words>();
             foreach (Task<List<Program.words>> t8 in Tasks2) { foreach (Program.words r8 in t8.Result) { r.Add(r8); } }
-            r = Program.words_google_to_find(r); // eng/rus/bad sorting
 
             r = Program.words_find_base_s(r);
             if (d.Auto.Checked)
@@ -107,8 +110,8 @@ namespace Solver
                     foreach (string str in wrd.w_find) { Data.TextOut.Text += (str + " "); }
                     Data.TextOut.Text += " | ";
                     foreach (string str in wrd.w_base) { Data.TextOut.Text += (str + " "); }
-                    Data.TextOut.Text += " | ";
-                    foreach (string str in wrd.w_assoc) { Data.TextOut.Text += (str + " "); }
+                    //Data.TextOut.Text += " | ";
+                    //foreach (string str in wrd.w_assoc) { Data.TextOut.Text += (str + " "); }
                 }
                 Data.TextOut.Text += "\r\n";
             }

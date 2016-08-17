@@ -12,7 +12,11 @@ namespace Solver
         int image_border_width = 5;
         public Program.words Association_Process_One(string path)
         {
-            return Program.parse_google_page_words(Program.get_google_url_page(Program.upload_file(path)));
+            List<string> wrd = Google.GetImageDescription(path);
+            Program.words wrds = new Program.words();
+            wrds.g_words = wrd;
+            wrds.w_find = wrd;
+            return wrds;
         } // вход - локальный путь к одной части, выход - структура о словах
         public List<Program.words> Association_Process(Program.Picture_data d)
         {
@@ -73,7 +77,6 @@ namespace Solver
             Task.WaitAll(Tasks2.ToArray());
             List<Program.words> r = new List<Program.words>();
             foreach (Task<List<Program.words>> t8 in Tasks2) { foreach (Program.words r8 in t8.Result) { r.Add(r8); } }
-            r = Program.words_google_to_find(r); // eng/rus/bad sorting
             if (d.Auto.Checked)
             {
                 r = Program.words_to_engine(r, "find");
@@ -416,11 +419,13 @@ namespace Solver
             if (s2 == null) { s2 = ""; }
             List<Program.words> w = new List<Program.words>();
             List<Program.words> w9 = new List<Program.words>();
+
             Program.words w1 = new Program.words();
             foreach (Program.words q1 in q) { w1.level = q1.level; w1.number = idx; w1.prot = q1.prot; break; }
+
             if ((s1 == "") || (s2 == "")) { w.AddRange(q); w1.w_find = new List<string>(); w1.w_base = new List<string>(); w1.w_assoc = new List<string>(); w.Add(w1); return w; }
-            w1.w_find = Program.get_assoc_word(s1);
-            w1.w_base = Program.get_assoc_word(s2);
+            w1.w_find = Associations.Get(s1);
+            w1.w_base = Associations.Get(s2);
             w1.w_assoc = new List<string>();
             foreach (string str1 in w1.w_find) { if (w1.w_base.Contains(str1)) { w1.w_assoc.Add(str1); } }
             w9.Add(w1);

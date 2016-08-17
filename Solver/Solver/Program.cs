@@ -2,13 +2,11 @@
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
-using Microsoft.Office.Interop.Word;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 using System.Net;
 using System.Linq;
 using System.Net.Http;
@@ -234,9 +232,6 @@ namespace Solver
             public string answer;
             public string g_variant;
             public List<string> g_words;
-            public List<string> g_words_ru;
-            public List<string> g_words_en;
-            public List<string> g_words_en_trans;
             public List<string> w_find;
             public List<string> w_base;
             public List<string> w_base_all;
@@ -441,121 +436,7 @@ namespace Solver
             foreach (string sa in part_end) { if (sa != "") { w.g_words.Add(sa); } }
             return w;
         }
-        public static string upload_file_jpegshare(string filepath)
-        {
-            string filename = filepath.Substring(filepath.LastIndexOf("\\") + 1);
-            string uri = "http://jpegshare.net";
-            string uriaction = uri + "/upload.php";
-            string parse_b = "[img]" + uri + "/images";
-            string parse_e = "[/img]";
-            HttpClient httpClient = new HttpClient();
-            System.Net.ServicePointManager.Expect100Continue = false;
-            MultipartFormDataContent form = new MultipartFormDataContent();
-            byte[] img_bytes = System.IO.File.ReadAllBytes(filepath);
-            form.Add(new ByteArrayContent(img_bytes, 0, img_bytes.Count()), "imgfile", filename);
-            Task<HttpResponseMessage> response = httpClient.PostAsync(uriaction, form);
-            HttpResponseMessage res2 = response.Result;
-            res2.EnsureSuccessStatusCode();
-            HttpContent Cont = res2.Content;
-            httpClient.Dispose();
-            string sd = res2.Content.ReadAsStringAsync().Result;
-            sd = sd.Substring(sd.IndexOf(parse_b) + 5); // 5 = [img]
-            sd = sd.Substring(0, sd.IndexOf(parse_e));
-            return sd;
-        }
-        public static string upload_file_ipic(string filepath)
-        {
-            string filename = filepath.Substring(filepath.LastIndexOf("\\") + 1);
-            string uri = "http://ipic.su";
-            string uriaction = uri + "/";
-            HttpClient httpClient = new HttpClient();
-            //System.Net.ServicePointManager.Expect100Continue = false;
-            MultipartFormDataContent form = new MultipartFormDataContent();
 
-            form.Add(new StringContent("/"), "link");
-            form.Add(new StringContent("loadimg"), "action");
-            form.Add(new StringContent("ipic.su"), "client");
-            //form.Add(new StringContent(filename), "name");
-            var streamContent2 = new StreamContent(File.Open(filepath, FileMode.Open));
-            form.Add(streamContent2, "image", filename);
-            //form.Add(new StringContent("client"), "ipic.su");
-            //form.Add(new StringContent("client"), "ipic.su");
-            //form.Add(new StringContent("client"), "ipic.su");
-
-            //byte[] img_bytes = System.IO.File.ReadAllBytes(filepath);
-            //form.Add(new ByteArrayContent(img_bytes, 0, img_bytes.Count()), "image", filename);
-
-            Task<HttpResponseMessage> response = httpClient.PostAsync(uriaction, form);
-            HttpResponseMessage res2 = response.Result;
-            res2.EnsureSuccessStatusCode();
-            HttpContent Cont = res2.Content;
-            httpClient.Dispose();
-            string sd = res2.Content.ReadAsStringAsync().Result;
-            sd = sd.Substring(sd.IndexOf("[edit]") + 6);
-            sd = sd.Substring(sd.IndexOf("value=\"") + 7);
-            sd = sd.Substring(0, sd.IndexOf("\""));
-            return sd;
-            //">[edit]</a>:< br />< input type = "text" value="htt
-        }
-        public static string upload_file(string filepath)
-        {
-            return upload_file_ipic(filepath);
-            //return upload_file_jpegshare(filepath);
-        }
-        public static List<Program.words> words_google_to_find(List<Program.words> q)
-        {
-            var wordApp = new Microsoft.Office.Interop.Word.Application();
-            wordApp.Visible = false;
-            List<Program.words> w = new List<Program.words>();
-            foreach (Program.words q1 in q)
-            {
-                // дял всех найденных списков
-                Program.words w1 = q1;
-                w1.g_words_ru = new List<string>();
-                w1.g_words_en = new List<string>();
-                w1.g_words_en_trans = new List<string>();
-                w1.w_find = new List<string>();
-                w1.w_base = new List<string>();
-                w1.w_assoc = new List<string>();
-                foreach (string w2 in w1.g_words)
-                {
-                    //рассмотрим один набор слов для одной картинки
-                    bool bad = false;
-                    //проверим на плохое слово
-                    for (int i = 0; i < Program.bad_words.Length; i++) { if (w2 == Program.bad_words[i]) { bad = true; } }
-                    if (bad) { continue; }
-                    // lang? ru/en
-                    string w3 = w2.ToLower().Replace("ё", "е");
-                    char c1 = w3[0];
-                    char c2 = w3[w3.Length - 1];
-                    if (((c1 >= 'a') && (c1 <= 'z')) || ((c2 >= 'a') && (c2 <= 'z'))) { w1.g_words_en.Add(w3.ToLower()); }
-                    if (((c1 >= 'а') && (c1 <= 'я')) || ((c2 >= 'а') && (c2 <= 'я')))
-                    {
-                        if (wordApp.CheckSpelling(w3)) { w1.g_words_ru.Add(w3); }
-                        else { if (wordApp.CheckSpelling(w3.Substring(0, 1).ToUpper() + w3.Substring(1, w3.Length - 1))) { w1.g_words_ru.Add(w3); } }
-                    }
-                }
-                w1.w_find = w1.g_words_ru;
-                if (w1.g_words_en.Count != 0)
-                {
-                    //переведем их
-                    string tren = "";
-                    foreach (string t3 in w1.g_words_en) { tren = tren + t3 + ". "; }
-                    tren = tren.TrimEnd();
-                    tren = Program.get_trans_word(tren).ToLower();
-                    string[] ar1 = tren.Split('.');
-                    foreach (string ar2 in ar1) { if (ar2 != "") { w1.g_words_en_trans.Add(ar2.TrimStart().TrimEnd()); } }
-                    w1.w_find.AddRange(w1.g_words_en_trans);
-                }
-                //убрать дупы
-                if (w1.w_find != null) { w1.w_find = w1.w_find.Distinct().ToArray().ToList(); }
-                w1.w_find.Remove("");
-                //добавить в решение
-                w.Add(w1);
-            }
-            wordApp.Quit();
-            return w;
-        }
         public static List<Program.words> words_to_engine(List<Program.words> q, string s)
         {
             List<Program.words> w = new List<Program.words>();
@@ -634,7 +515,7 @@ namespace Solver
                 w1.w_assoc = new List<string>();
                 if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
                 if (w1.w_base_all.Count >= 5) { w.Add(w1); continue; }
-                foreach (string s2 in w1.w_base) { w1.w_assoc.AddRange(Program.get_assoc_word(s2, 10)); }
+                foreach (string s2 in w1.w_base) { w1.w_assoc.AddRange(Associations.Get(s2, 10)); }
                 w1.w_assoc = new List<string>(w1.w_assoc.Distinct().ToArray());
                 w.Add(w1);
             }
@@ -747,98 +628,7 @@ namespace Solver
             v3.Remove("индульгенция");
             return String.Join(" ", v3.Distinct().ToArray());
         }
-        public static List<string> get_assoc_word(string v, int max_res_cnt=10000)
-        {
-            List<string> res7 = new List<string>();
-            if (v == "") { return res7; }
-            string[] arr1 = v.Split(' ');
-            string re = "";
-            foreach (string w1 in arr1)
-            {
-                if (w1 == "") { continue; }
-                WebClient cl = new WebClient();
-                cl.Encoding = System.Text.Encoding.UTF8;
-                string w2 = "http://sociation.org/word/" + w1;
-                bool ffl = true;
-                int iil = 0;
-                while (ffl)
-                {
-                    try
-                    {
-                        re = cl.DownloadString(w2);
-                        ffl = false;
-                    }
-                    catch
-                    {
-                        Thread.Sleep(1000);
-                        iil++;
-                        if(iil == 15)
-                        {
-                            Log("ERROR: sociation.org вызвал наш таймаут в секунду");
-                            re = "";
-                            ffl = false;
-                        }
-                    }
-                }
-                cl.Dispose();
-                int ii1 = re.IndexOf("<ol ");
-                if (ii1 == -1) { continue; } else { re = re.Substring(ii1); }
-                int ii2 = re.IndexOf("<li>");
-                if (ii2 == -1) { continue; } else { re = re.Substring(ii2); }
-                int ii3 = re.IndexOf("</ol>");
-                if (ii3 == -1) { continue; } else { re = re.Substring(0, ii3); }
-                string[] ar2 = Regex.Split(re, "</a>");
-                int cnt = 0;
-                foreach (string ww2 in ar2)
-                {
-                    //string ww3 = ww2.Replace("</a>", "");
-                    int ii4 = ww2.LastIndexOf(">");
-                    if (ii4 == -1) { continue; }
-                    string ww4 = ww2.Substring(ii4 + 1).Replace(" ", "").Replace("\r", "").Replace("\n", "").Replace("\t", "");
-                    if (ww4 == "") { continue; }
-                    res7.Add(ww4.ToLower());
-                    cnt++;
-                    if (cnt >= max_res_cnt) { break; }
-                }
-            }
-            return res7;
-        }
-        public static string get_trans_word(string s1)
-        {
-            if (s1 == "") { return ""; }
-            WebClient wc1 = new WebClient();
-            wc1.Encoding = System.Text.Encoding.UTF8;
-            wc1.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
-            wc1.Headers.Add("Accept-Language", "ru-ru");
-            wc1.Headers.Add("Content-Language", "ru-ru");
-            string w2 = String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair=en|ru", s1.ToLower());
-            string re1 = "";
-            try { re1 = wc1.DownloadString(w2); } catch { re1 = ""; Log("ERROR: www.google.com/translate_t? вызвал наш таймаут в секунду"); }
-            if (re1 == "") { return ""; }
-            string ans = "";
-            int ii7 = re1.IndexOf("<span title=\"");
-            while (ii7 != -1) {
-                re1 = re1.Substring(ii7 + "<span title=\"".Length);
-                re1 = re1.Substring(re1.IndexOf(">") + 1);
-                string w12 = re1.Substring(0, re1.IndexOf("</span>"));//word
-                //if (s1.IndexOf(w12) == -1) { ans = ans + w12.ToLower().Replace(".", "").TrimStart().TrimEnd() + " "; }
-                if (s1.IndexOf(w12.Replace(".", "").Replace(" ", "")) == -1) { ans = ans + w12.ToLower() + " "; }
-                ii7 = re1.IndexOf("<span title=\"");
-            }
-            return ans.TrimEnd();
-        }
-        public static string get_google_url_page(string url)
-        {
-            string googleRU = "https://www.google.ru/searchbyimage?&hl=ru-ru&lr=lang_ru&image_url=";
-            string gurl = googleRU + url;
 
-            WebClient wc = new WebClient();
-            wc.Encoding = System.Text.Encoding.UTF8;
-            wc.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
-            wc.Headers.Add("Accept-Language", "ru-ru");
-            wc.Headers.Add("Content-Language", "ru-ru");
-            return wc.DownloadString(gurl);
-        }
         public static string Game_Logon(string url1, string name, string pass)
         {
             string formParams = string.Format("Login={0}&Password={1}", name, pass);

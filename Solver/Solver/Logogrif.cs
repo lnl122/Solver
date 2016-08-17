@@ -12,7 +12,11 @@ namespace Solver
         int image_border_width = 5;
         public Program.words Logogrif_Process_One(string path)
         {
-            return Program.parse_google_page_words(Program.get_google_url_page(Program.upload_file(path)));
+            List<string> wrd = Google.GetImageDescription(path);
+            Program.words wrds = new Program.words();
+            wrds.g_words = wrd;
+            wrds.w_find = wrd;
+            return wrds;
         } // вход - локальный путь к одной части, выход - структура о словах
         public List<Program.words> Logogrif_Process(Program.Picture_data d)
         {
@@ -72,7 +76,6 @@ namespace Solver
             Task.WaitAll(Tasks2.ToArray());
             List<Program.words> r = new List<Program.words>();
             foreach (Task<List<Program.words>> t8 in Tasks2) { foreach (Program.words r8 in t8.Result) { r.Add(r8); } }
-            r = Program.words_google_to_find(r); // eng/rus/bad sorting
             if (d.Auto.Checked)
             {
                 Program.words[] w = r.ToArray();

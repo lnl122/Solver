@@ -11,6 +11,7 @@
     <AssemblyName>Solver</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -23,7 +24,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -65,7 +65,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Association.cs" />
+    <Compile Include="Assosiations.cs" />
     <Compile Include="GapoifikaBooks.cs" />
+    <Compile Include="Google.cs" />
     <Compile Include="Gybrid.cs" />
     <Compile Include="Logogrif.cs" />
     <Compile Include="Metagramm.cs" />
@@ -73,6 +75,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Raschl.cs" />
+    <Compile Include="SpellChecker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
