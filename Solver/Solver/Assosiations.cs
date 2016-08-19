@@ -37,6 +37,7 @@ namespace Solver
         // выход - объект
         public static void Init()
         {
+            Log.Write("assoc Инициализация объекта");
             //инициализация одного объекта, если ранее не инициализировали
             if (isObjectReady == false)
             {
@@ -49,6 +50,7 @@ namespace Solver
         // чтение словаря
         public static void LoadDictionary(string DictPath)
         {
+            Log.Write("assoc Чтение словаря ассоциаций начато");
             if (isObjectReady == false) { return; }
             // если словарь не загружен
             if (isDicionaryLoaded == false)
@@ -78,6 +80,7 @@ namespace Solver
                         }
                     }
                     isDicionaryLoaded = true;
+                    Log.Write("assoc Чтение словаря ассоциаций завершено");
                 }
             }
         }
@@ -92,6 +95,7 @@ namespace Solver
         // обновление словаря на диске
         public static void SaveDictionary()
         {
+            Log.Write("assoc Запись словаря ассоциаций в файл начата");
             if (isObjectReady == false) { return; }
             string[] ar = new string[words.Count];
             for (int i = 0; i < words.Count; i++)
@@ -104,6 +108,7 @@ namespace Solver
                 ar[i] = temp.TrimEnd();
             }
             System.IO.File.WriteAllLines(DictionaryPath, ar);
+            Log.Write("assoc Запись словаря ассоциаций в файл завершена");
         }
 
         // вход - слово
@@ -129,7 +134,8 @@ namespace Solver
                     CountTry++;
                     if (CountTry == MaxTryToReadPage)
                     {
-                        //Log("ERROR: sociation.org вызвал наш таймаут в секунду");
+                        Log.Write("assoc ERROR: sociation.org не отдал страницу с " + MaxTryToReadPage + " попыток.");
+                        Log.Write("assoc ERROR: Проверяемый слова были: " + word);
                         Page = "";
                         isNeedReadPage = false;
                     }
@@ -185,6 +191,7 @@ namespace Solver
         // вход - слово и ассоциации
         private static void AddDictionary(string wrd, List<string> lst)
         {
+            Log.Write("assoc добавление в словарь новых ассоциаций для '" + wrd + "'");
             words.Add(wrd);
             assoc.Add(lst);
         }

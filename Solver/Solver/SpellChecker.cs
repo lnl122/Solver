@@ -29,6 +29,7 @@ namespace Solver
 
         public static void Init()
         {
+            Log.Write("words Инициализация объекта SpellChecker");
             if (isObjectReady == false)
             {
                 if (CheckMsWord() == true)
@@ -48,12 +49,14 @@ namespace Solver
             if (isObjectReady == true)
             {
                 WordApp = new Microsoft.Office.Interop.Word.Application();
+                Log.Write("words Создание нового объекта спелчекера");
             }
         }
 
         // чтение словаря
         public static void LoadDictionary(string DictPath)
         {
+            Log.Write("words Чтение внешнего словаря начато");
             if (isObjectReady == false) { return; }
             // если словарь не загружен
             if (isDicionaryLoaded == false)
@@ -70,6 +73,7 @@ namespace Solver
                         dict1.Add(s1.ToLower());
                     }
                     isDicionaryLoaded = true;
+                    Log.Write("words Чтение внешнего словаря завершено");
                 }
             }
         }
@@ -80,11 +84,13 @@ namespace Solver
             //SaveDictionary();
             WordApp.Quit();
             WordApp = null;
+            Log.Write("words Закрыли очередную копию MS Word");
         }
 
         // обновление словаря на диске
         public static void SaveDictionary()
         {
+            Log.Write("words Запись в файл словаря для Spellchecker'а начата");
             if (isObjectReady == false) { return; }
             // объединяем два словаря (без пустых строк) и сохраняем в файл DictionaryPath
             List<string> dict_out = new List<string>();
@@ -94,21 +100,25 @@ namespace Solver
                 dict_out.Add(s1.ToLower());
             }
             System.IO.File.WriteAllLines(DictionaryPath, dict_out.ToArray());
+            Log.Write("words Запись в файл словаря для Spellchecker'а завершена");
         }
 
         // проверим существование и работу спелчекера
         // выход - true/false
         private static bool CheckMsWord()
         {
+            Log.Write("words Проверяем наличие MS Word");
             try
             {
                 var wa = new Microsoft.Office.Interop.Word.Application();
                 wa.CheckSpelling("мама мыла раму");
                 wa.Quit();
+                Log.Write("words MS Word точно есть");
                 return true;
             }
             catch
             {
+                Log.Write("words ERROR: MS Word не удалось запустить, проверить слова, или какие-то другие проблемы");
                 return false;
             }
         }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -6,8 +6,7 @@ using System.Drawing;
 using System.Collections.Generic;
 
 namespace Solver
-{
-    class Association
+{class Association
     {
         int image_border_width = 5;
         public Program.words Association_Process_One(string path)
@@ -436,3 +435,4 @@ namespace Solver
         }
     }
 }
+*/

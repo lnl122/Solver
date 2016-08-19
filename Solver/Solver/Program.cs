@@ -17,45 +17,17 @@ namespace Solver
 {
     class Program
     {
-        public static Form Mainform;       // форму объявим глобально
-        public static TabControl Tabs;
+        //public static Form Mainform;       // форму объявим глобально
+        //public static TabControl Tabs;
 
-        public static string mainform_caption = "Solver..";     // имя формы
+        //public static string mainform_caption = "Solver..";     // имя формы
 
-        public static int mainform_border = 5;      // расстояния между элементами форм, константа
-        public static int rnd_min = 800;//1300;
-        public static int rnd_max = 1500;//3300;
-        public static bool input_busy = false;
-
-        public static void Log(string t)
-        {
-            Program.logfile.WriteLine("{0} {1} {2}", DateTime.Today.ToShortDateString(), DateTime.Now.ToLongTimeString(), t);
-        }
-        private static dEnvInfo GetEnvInfo(string[] args)
-        {
-            dEnvInfo d = new dEnvInfo();
-            //заполняем переменные окружения, с которыми потом будем работать
-            d.windows_name = System.Environment.OSVersion.VersionString;
-            d.system_architecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
-            d.system_processors = Environment.ProcessorCount;
-            d.local_path = Environment.CurrentDirectory;
-            d.system_is64bit = Environment.Is64BitOperatingSystem;
-            d.system_name = Environment.MachineName;
-            d.system_version = Environment.Version.ToString();
-            d.self_name = Process.GetCurrentProcess().MainModule.ModuleName;
-            d.log_pathfilename = d.local_path + "\\" + d.self_name + ".log";
-            d.self_date = File.GetCreationTime(Process.GetCurrentProcess().MainModule.FileName).ToString();
-            Program.logfile = new StreamWriter(File.AppendText(d.log_pathfilename).BaseStream);
-            Program.logfile.AutoFlush = true;
-            d.temp_path = d.local_path + "\\pics"; if (!Directory.Exists(d.temp_path)) { Directory.CreateDirectory(d.temp_path); }
-            //if (!Directory.Exists(d.temp_path + "\\0")) { Directory.CreateDirectory(d.temp_path + "\\0"); }
-            Log("________________________________________________________________________________");
-            Log("Старт программы..");
-            Log("Сборка от "+d.self_date);
-            Log("ПК: "+ d.system_name);
-            Log(d.windows_name+", "+ d.system_architecture+", ver:"+d.system_version+", CPU: "+ d.system_processors.ToString() + ", 64bit:" + d.system_is64bit.ToString());
-            return d;
-        }
+        //public static int mainform_border = 5;      // расстояния между элементами форм, константа
+        //public static int rnd_min = 800;//1300;
+        //public static int rnd_max = 1500;//3300;
+        //public static bool input_busy = false;
+        
+        // получаем строку с версиями установленных .net
         private static string GetVersionDotNetFromRegistry()
         {
             string res = "";
@@ -89,8 +61,9 @@ namespace Solver
                     }
                 }
             }
-            return res;
+            return res.Trim();
         }
+        // получаем строку с версией MS Word
         private static string GetVersionMicrosoftWord()
         {
             try
@@ -105,58 +78,58 @@ namespace Solver
                 return "";
             }
         }
+        // проверяем наличие, настройки и также работу всех необходимых компонент, ведем лог
         private static bool CheckComponents()
         {
             // .NET
-            string DotNetVersions = GetVersionDotNetFromRegistry().Trim();
-            Log("Найденные версии .NET: " + DotNetVersions);
-            if (DotNetVersions.IndexOf("v2.0") == -1) { Log("ERROR: Отсутствует .NET v2.0"); return false; }
-            if (DotNetVersions.IndexOf("v3.0") == -1) { Log("ERROR: Отсутствует .NET v3.0"); return false; }
-            if (DotNetVersions.IndexOf("v4.0") == -1) { Log("ERROR: Отсутствует .NET v4.0"); return false; }
-            if ((DotNetVersions.IndexOf("v4.5") == -1) && (DotNetVersions.IndexOf("v4.6") == -1)) { Log("ERROR: Отсутствует .NET v4.5 или v4.6"); return false; }
+            string DotNetVersions = GetVersionDotNetFromRegistry();
+            Log.Write("check Найденные версии .NET: " + DotNetVersions);
+            if (DotNetVersions.IndexOf("v2.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v2.0"); return false; }
+            if (DotNetVersions.IndexOf("v3.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v3.0"); return false; }
+            if (DotNetVersions.IndexOf("v4.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v4.0"); return false; }
+            if ((DotNetVersions.IndexOf("v4.5") == -1) && (DotNetVersions.IndexOf("v4.6") == -1)) { Log.Write("check ERROR: Отсутствует .NET v4.5 или v4.6"); return false; }
+            
             // MS Word
             string WordVersion = GetVersionMicrosoftWord();
-            if (WordVersion == "") { Log("ERROR: Отсутствует установленный Microsoft Word"); return false; }
+            if (WordVersion == "") { Log.Write("check ERROR: Отсутствует установленный Microsoft Word"); return false; }
             int ii1 = 0;
             if (Int32.TryParse(WordVersion.Substring(0, WordVersion.IndexOf(".")), out ii1))
             {
-                if (ii1 <= 11) { Log("ERROR: Версия Microsoft Word ниже 11.0, необходим Microsoft Word 2007 или более новый"); return false; }
+                if (ii1 <= 11) { Log.Write("check ERROR: Версия Microsoft Word ниже 11.0, необходим Microsoft Word 2007 или более новый"); return false; }
             } else
             {
-                Log("ERROR: Не удалось определить версию Microsoft Word"); return false;
+                Log.Write("check ERROR: Не удалось определить версию Microsoft Word"); return false;
             }
-            Log("Найден Microsoft Word версии " + WordVersion);
-            try { 
-                var wordApp = new Microsoft.Office.Interop.Word.Application();
-                wordApp.Visible = false;
-                wordApp.CheckSpelling("мама мыла раму");
-                wordApp.Quit();
-                Log("Проверка орфографии установлена");
+            Log.Write("check Найден Microsoft Word версии " + WordVersion);
+            try {
+                var testSC = new SpellChecker();
+                if(testSC.CheckOne("мама") && testSC.CheckOne("мыла") && testSC.CheckOne("раму"))
+                {
+                    Log.Write("check Проверка орфографии установлена");
+                }
             } catch
             {
-                Log("ERROR: Не удалось запустить проверку орфографии, или же проверка русского языка не установлена.."); return false;
+                Log.Write("ERROR: Не удалось запустить проверку орфографии, или же проверка русского языка не установлена.."); return false;
             }
-            // проверка орфографии установлена?
-            // ???
-            // 2do
 
             // проверка открытия web-ресурсов
             WebClient wc1 = null;
-            try { wc1 = new WebClient(); }                                  catch { Log("ERROR: Не удалось создать объект WebClient");      return false; }
+            try { wc1 = new WebClient(); }                                  catch { Log.Write("check ERROR: Не удалось создать объект WebClient");      return false; }
             string re1 = "";
-            try { re1 = wc1.DownloadString("http://image.google.com/"); }   catch { Log("ERROR: http://image.google.com/ не открывается");  return false; }
-            try { re1 = wc1.DownloadString("http://game.en.cx/"); }         catch { Log("ERROR: http://game.en.cx/ не открывается");        return false; }
-            try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log("ERROR: http://jpegshare.net/ не открывается");     return false; }
-            try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log("ERROR: http://ipic.su/ не открывается");           return false; }
-            try { re1 = wc1.DownloadString("http://goldlit.ru/"); }         catch { Log("ERROR: http://goldlit.ru/ не открывается");        return false; }
-            try { re1 = wc1.DownloadString("http://sociation.org/"); }      catch { Log("ERROR: http://sociation.org/ не открывается");     return false; }
-            Log("Все необходимые web-ресурсы открываются успешно");
+            try { re1 = wc1.DownloadString("http://image.google.com/"); }   catch { Log.Write("check ERROR: http://image.google.com/ не открывается");  return false; }
+            try { re1 = wc1.DownloadString("http://game.en.cx/"); }         catch { Log.Write("check ERROR: http://game.en.cx/ не открывается");        return false; }
+            try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log.Write("check ERROR: http://jpegshare.net/ не открывается");     return false; }
+            try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log.Write("check ERROR: http://ipic.su/ не открывается");           return false; }
+            try { re1 = wc1.DownloadString("http://goldlit.ru/"); }         catch { Log.Write("check ERROR: http://goldlit.ru/ не открывается");        return false; }
+            try { re1 = wc1.DownloadString("http://sociation.org/"); }      catch { Log.Write("check ERROR: http://sociation.org/ не открывается");     return false; }
+            try { re1 = wc1.DownloadString("https://ru.wiktionary.org/"); } catch { Log.Write("check ERROR: https://ru.wiktionary.org/ не открывается"); return false; }
+            Log.Write("check Все необходимые web-ресурсы открываются успешно");
 
             // все проверки пройдены
             return true;
         }
-
-        public static string[,] actions = {
+        
+        /*public static string[,] actions = {
             //{ "Решать самостоятельно",      "manual" },
             { "Расчленёнки",                    "raschl" },
             { "Картинки - только решить",       "picture"},
@@ -168,23 +141,9 @@ namespace Solver
             { "Гапоифика - названия книг",      "gapoifika_books"}
 
             };
+*/
 
-        public struct dEnvInfo
-        {
-            public string system_name;
-            public string windows_name;
-            public bool system_is64bit;
-            public string system_architecture;
-            public string system_version;
-            public int system_processors;
-            public string local_path;
-            public string log_pathfilename;
-            public string self_name;
-            public string self_date;
-            public string temp_path;
-            //public string registry_path;
-        }
-        public struct GameSt
+        /*public struct GameSt
         {
             public string username;
             public string password;
@@ -202,8 +161,8 @@ namespace Solver
             public string[] level_text;
             public string[] level_full;
             //public string[] level_pics;
-        }
-        public struct MainTabSt
+        }*/
+        /*public struct MainTabSt
         {
             public TabPage MainTab;
             public Button BtnUser;
@@ -212,19 +171,12 @@ namespace Solver
             public TextBox LvlText;
             public ComboBox gChoice;
             public Button BtnSolve;
-        }
+        }*/
+        
+        //public static GameSt dGame = new GameSt();
+        //public static MainTabSt GameTab = new MainTabSt();
 
-        public static dEnvInfo Env = new dEnvInfo();
-        public static StreamWriter logfile;
-        public static GameSt dGame = new GameSt();
-        public static MainTabSt GameTab = new MainTabSt();
-
-        public static string[] bad_words = {
-                "рабочего стола", "высокого качества", "&gt", "png", "dvd", "the", "buy", "avito", "авг", "апр", "без", "вас", "дек", "для", "его", "жми", "или", "июл", "июн", "как", "кто", "лет", "мар", "мем", "ноя", "окт", "они", "при", "про", "сен", "смс", "так", "тег", "фев", "что", "эту", "янв", "file", "free", "англ", "есть", "обои", "фото", "цена", "цены", "ютуб", "[pdf]", "stock", "видео", "куплю", "можно", "найти", "одной", "песен", "самые", "самых", "сразу", "тегам", "фильм", "images", "купить", "онлайн", "отзывы", "почему", "продам", "скидки", "услуги", "фильма", "фильму", "шаблон", "яндекс", "youtube", "выбрать", "закачка", "закачки", "маркете", "новости", "продажа", "продать", "рабочий", "родился", "скачать", "сколько", "способы", "форматы", "хорошем", "download", "выгодная", "выгодные", "выгодный", "картинки", "качестве", "магазине", "описание", "подборка", "свойства", "смотреть", "страницу", "kinopoisk", "photoshop", "wallpaper", "бесплатно", "перевести", "программы", "бесплатные", "применение", "разрешение"
-                , "широкоформатные", "ответить"
-            };
-
-        public struct words
+        /*public struct words
         {
             public int level;
             public prot prot;
@@ -237,9 +189,9 @@ namespace Solver
             public List<string> w_base_all;
             public List<string> w_assoc;
             //public List<string> w_all;
-        }
-        public enum prot { none, begin1, begin2, begin3, end1, end2, end3 };
-        public struct GapoifikaBooks_data
+        }*/
+        //public enum prot { none, begin1, begin2, begin3, end1, end2, end3 };
+        /*public struct GapoifikaBooks_data
         {
             public string type;
             public int level;//уровень
@@ -252,8 +204,8 @@ namespace Solver
             public System.Windows.Forms.CheckBox Auto;//автовбивать
             public TextBox TextIn;
             public TextBox TextOut;
-        }
-        public struct Pictures_data // все картинки одного уровня 1/2/4 штуки для олимпиек
+        }*/
+        /*public struct Pictures_data // все картинки одного уровня 1/2/4 штуки для олимпиек
         {
             public string type;
             public int level;//уровень
@@ -278,8 +230,8 @@ namespace Solver
             public Label lb_init;
             public PictureBox img;
             public TextBox TextOut;
-        }
-        public struct Picture_data // для одной картинки, под распознавание 16/20/25 мелких
+        }*/
+        /*public struct Picture_data // для одной картинки, под распознавание 16/20/25 мелких
         {
             public Image img;//пикча
             public Bitmap bmp;//пикча
@@ -289,8 +241,8 @@ namespace Solver
             public int col;//колво колонок
             public int cnt;//номер части (для нескольких картинок одного задания)
             public int init_num;//нач номер картинок
-        }
-        public static words parse_google_page_words(string gtext2)
+        }*/
+        /*public static words parse_google_page_words(string gtext2)
         {
             words w = new words();
             w.g_words = new List<string>();
@@ -436,8 +388,8 @@ namespace Solver
             foreach (string sa in part_end) { if (sa != "") { w.g_words.Add(sa); } }
             return w;
         }
-
-        public static List<Program.words> words_to_engine(List<Program.words> q, string s)
+        */
+        /*public static List<Program.words> words_to_engine(List<Program.words> q, string s)
         {
             List<Program.words> w = new List<Program.words>();
             while (Program.input_busy) { System.Threading.Thread.Sleep(1000); }
@@ -464,8 +416,8 @@ namespace Solver
             }
             Program.input_busy = false;
             return w;
-        }
-        public static List<Program.words> words_find_base(List<Program.words> q)
+        }*/
+        /*public static List<Program.words> words_find_base(List<Program.words> q)
         {
             List<Program.words> w = new List<Program.words>();
             foreach (Program.words q1 in q)
@@ -484,8 +436,8 @@ namespace Solver
                 w.Add(w1);
             }
             return w;
-        }
-        public static List<Program.words> words_find_base_s(List<Program.words> q)
+        }*/
+        /*public static List<Program.words> words_find_base_s(List<Program.words> q)
         {
             List<Program.words> w = new List<Program.words>();
             foreach (Program.words q1 in q)
@@ -504,8 +456,8 @@ namespace Solver
                 w.Add(w1);
             }
             return w;
-        }
-        public static List<Program.words> words_base_assoc(List<Program.words> q)
+        }*/
+        /*public static List<Program.words> words_base_assoc(List<Program.words> q)
         {
             //List<string> get_assoc_word(string v, int max_res_cnt=10000)
             List<Program.words> w = new List<Program.words>();
@@ -520,8 +472,8 @@ namespace Solver
                 w.Add(w1);
             }
             return w;
-        }
-        public static string get_start_word(string v)
+        }*/
+        /*public static string get_start_word(string v)
         {
             Encoding utf8 = Encoding.UTF8;
 
@@ -570,8 +522,8 @@ namespace Solver
             }
             v3.Remove("индульгенция");
             return String.Join(" ", v3.Distinct().ToArray());
-        }
-        public static string get_start_word_s(string v)
+        }*/
+        /*public static string get_start_word_s(string v)
         {
             Encoding utf8 = Encoding.UTF8;
 
@@ -628,8 +580,8 @@ namespace Solver
             v3.Remove("индульгенция");
             return String.Join(" ", v3.Distinct().ToArray());
         }
-
-        public static string Game_Logon(string url1, string name, string pass)
+        */
+        /*public static string Game_Logon(string url1, string name, string pass)
         {
             string formParams = string.Format("Login={0}&Password={1}", name, pass);
             string cookieHeader = "";
@@ -648,8 +600,8 @@ namespace Solver
             string pageSource = "";
             using (StreamReader sr = new StreamReader(resp.GetResponseStream())) { pageSource = sr.ReadToEnd(); }
             return pageSource;
-        }
-        public static string parse_html_body(string g)
+        }*/
+        /*public static string parse_html_body(string g)
         {
             g = g.Substring(g.IndexOf("<body>")+6).Replace("</body>", "").Replace("</html>", "");
             string[,] tags = {
@@ -679,8 +631,8 @@ namespace Solver
             g = g.Replace("<div>", "").Replace("</div>", "").Replace("<span>", "").Replace("</span>", "");
             g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" \r\n", "\r\n").Replace("\r\n ", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace(" >", ">").Replace("<br/>", "\r\n").Replace("<br />", "").Replace("\r\n\r\n", "\r\n");
             return g;
-        }
-        public static string get_game_page(string url)
+        }*/
+        /*public static string get_game_page(string url)
         {
             string ps = "";
             HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
@@ -694,8 +646,8 @@ namespace Solver
                 ps = sr.ReadToEnd();
             }
             return ps;
-        }
-        public static string parse_level_text(string t1)
+        }*/
+        /*public static string parse_level_text(string t1)
         {
             t1 = t1.Substring(t1.IndexOf("<ul class=\"section level\">"));
             t1 = t1.Substring(t1.IndexOf("</ul>"));
@@ -726,8 +678,8 @@ namespace Solver
             t1 = t1.Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n");
             t1 = t1.Replace("\r\n)\r\n", ")\r\n");
             return t1;
-        }
-        public static string get_task_type_by_name(string abc)
+        }*/
+        /*public static string get_task_type_by_name(string abc)
         {
             for (int i = 0; i < (actions.Length / 2); i++)
             {
@@ -737,8 +689,8 @@ namespace Solver
                 }
             }
             return "";
-        }
-        public static System.Collections.Generic.List<string> get_list_of_urls_from_text(string abc)
+        }*/
+        /*public static System.Collections.Generic.List<string> get_list_of_urls_from_text(string abc)
         {
             var L1 = new System.Collections.Generic.List<string>();
             string[] lines = Regex.Split(abc, "\r\n");
@@ -751,8 +703,8 @@ namespace Solver
                 }
             }
             return L1;
-        }
-        public static string set_word_protect(string v, int num, Program.prot p)
+        }*/
+        /*public static string set_word_protect(string v, int num, Program.prot p)
         {
             string vv = "000";
             switch (p)
@@ -766,8 +718,8 @@ namespace Solver
                 case Program.prot.end3      : vv += num.ToString(); return v + vv.Substring(vv.Length - 3, 3);
                 default                     : return v;
             }
-        }
-        public static bool try_form_send(int lvl, string val)
+        }*/
+        /*public static bool try_form_send(int lvl, string val)
         {
             if (lvl < 1) { return false; }
             if (val.Length <= 3) { return false; }
@@ -791,8 +743,9 @@ namespace Solver
             req.ServicePoint.Expect100Continue = false;
             req.Referer = url;
             req.KeepAlive = true;
-            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
-            req.CookieContainer = dGame.game_cCont;
+            */
+            //req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            /*req.CookieContainer = dGame.game_cCont;
             req.ContentType = "application/x-www-form-urlencoded";
             req.Method = "POST";
             string formParams = string.Format("LevelId={0}&LevelNumber={1}&LevelAction.Answer={2}", LevelId, LevelNumber, val);
@@ -828,9 +781,9 @@ namespace Solver
             }
             Log("bad_answer="+ val);
             return false;
-        }
+        }*/
 
-        public static void Event_SolveLevel(object sender, EventArgs e)
+        /*public static void Event_SolveLevel(object sender, EventArgs e)
         {
             string type = get_task_type_by_name(GameTab.gChoice.SelectedItem.ToString());
             if (type == "raschl")
@@ -862,8 +815,8 @@ namespace Solver
                 var R1 = new GapoifikaBooks(GameTab.LvlList.SelectedIndex, GameTab.LvlText.Text);
             }
             //
-        }
-        public static void Event_MainFormChangeSize(object sender, EventArgs e)
+        }*/
+        /*public static void Event_MainFormChangeSize(object sender, EventArgs e)
         {
             Tabs.Top = mainform_border;
             Tabs.Left = mainform_border;
@@ -895,15 +848,15 @@ namespace Solver
             GameTab.BtnSolve.Top = GameTab.gChoice.Bottom + 2 * Program.mainform_border;
             GameTab.BtnSolve.Left = Program.mainform_border;
             GameTab.BtnSolve.Width = GameTab.gChoice.Width;
-        }
-        public static void Event_SelectGameFromList(object sender, EventArgs e)
+        }*/
+        /*public static void Event_SelectGameFromList(object sender, EventArgs e)
         {
             ListBox l4 = (ListBox)sender;
             dGame.tb.Text = dGame.g_urls[l4.SelectedIndex];
             //Form f1 = l4.Parent;
             //f1.Close();
-        }
-        public static void Event_BtnUserClick(object sender, EventArgs e)
+        }*/
+        /*public static void Event_BtnUserClick(object sender, EventArgs e)
         {
             // нужная ветка реестра д.б. в HKCU - //[HKEY_CURRENT_USER\Software\lnl122\solver] //"user"="username" //"pass"="userpassword"
             // обратимся к реестру, есть ли там записи о последнем юзере, если есть - прочтем их
@@ -1010,8 +963,8 @@ namespace Solver
                     fl = false;
                 }
             } // выход только если fl = false -- это или отказ польователя в диалоге, или если нажато ОК - корректная УЗ
-        }
-        public static void Event_BtnGameClick(object sender, EventArgs e)
+        }*/
+        /*public static void Event_BtnGameClick(object sender, EventArgs e)
         {
             string url1 = "http://game.en.cx/UserDetails.aspx?zone=1&tab=1&uid=" + dGame.userid + "&page=1";
             string cookieHeader = "";
@@ -1226,15 +1179,15 @@ namespace Solver
                     dGame.level_text[i] = t1;
                 }
             }
-        }
-        public static void Event_LevelSelected(object sender, EventArgs e)
+        }*/
+        /*public static void Event_LevelSelected(object sender, EventArgs e)
         {
             if (GameTab.LvlList.Items.Count != 1) {
                 int newlvl = GameTab.LvlList.SelectedIndex;
                 GameTab.LvlText.Text = dGame.level_text[newlvl];
             }
-        }
-
+        }*/
+        /*
         private static void CreateMainForm()
         {
             Mainform = new Form();
@@ -1281,14 +1234,33 @@ namespace Solver
 
             Event_MainFormChangeSize(null, null);
         }
+        */
+
         static void Main(string[] args)
         {
-            Program.Env = GetEnvInfo(args);
-            if (!CheckComponents()) { MessageBox.Show("Не все необхдимые компоненты установлены на ПК.\r\nПроверьте лог-файл."); return; }
-            //создаём форму, передаём её управление
-            CreateMainForm();
-            System.Windows.Forms.Application.Run(Mainform);
-            Log("Выход из программы..");
+            // инитим лог
+            Log.Init();
+            Log.Write("________________________________________________________________________________");
+            Log.Write("      Старт программы..");
+            Log.Write("      Сборка от " + File.GetCreationTime(Process.GetCurrentProcess().MainModule.FileName).ToString());
+            Log.Write("      ПК: " + Environment.MachineName);
+            Log.Write("      " + System.Environment.OSVersion.VersionString + ", " + Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") + 
+                      ", ver:" + Environment.Version.ToString() + ", CPU: " + Environment.ProcessorCount.ToString() + 
+                      ", 64bit:" + Environment.Is64BitOperatingSystem.ToString());
+            
+            // выполняем проверки окружения
+            if (!CheckComponents()) {
+                MessageBox.Show("Не все необхдимые компоненты установлены на ПК.\r\nПроверьте лог-файл.");
+                return;
+            }
+            
+            // создаём форму, передаём её управление
+            //CreateMainForm();
+            //System.Windows.Forms.Application.Run(Mainform);
+
+            // закругляемся
+            Log.Write("Выход из программы..");
+            Log.Close();
         }
     }
 }
