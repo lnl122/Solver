@@ -2,6 +2,10 @@
 
 namespace Solver
 {
+    // public void Init()
+    // public void Close()
+    // public void Write(string text)
+    //
     class Log
     {
         //private static string PathToLogs = "";                 // путь (без файла) к логам

@@ -6,12 +6,11 @@ namespace Solver
 {
     // need COM Reference "Microsoft.Word.14.Object.Library"
     //
-    // public Associations()
-    // public void Close()
+    // public void Init()
     // public void LoadDictionary(string DictPath)
     // public void SaveDictionary()
-    // public List<string> Get(string)
-    // public List<string> Get(List<string>)
+    // public List<string> Get(string, int = 999)
+    // public List<string> Get(List<string>, int = 999)
     // public List<string> Get2(string, string)
     // public List<string> Get2(List<string>, List<string>)
     // ***public List<string> Get3(string, string, string)

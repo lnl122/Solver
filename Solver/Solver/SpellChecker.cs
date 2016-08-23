@@ -4,7 +4,8 @@ namespace Solver
 {
     // need COM Reference "Microsoft.Word.14.Object.Library"
     //
-    // public SpellChecker()
+    // public Init()
+    // public SpellChecker() - constructor
     // public void Close()
     // public void LoadDictionary(string DictPath)
     // public void SaveDictionary()

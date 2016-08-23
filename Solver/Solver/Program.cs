@@ -1,4 +1,6 @@
-﻿using System;
+﻿// *** добавить в проверки при старте полный цикл: картинка (чебурашка) распознавание + ассоциации = проверяемый результат (гена)
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
@@ -1247,13 +1249,23 @@ namespace Solver
             Log.Write("      " + System.Environment.OSVersion.VersionString + ", " + Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") + 
                       ", ver:" + Environment.Version.ToString() + ", CPU: " + Environment.ProcessorCount.ToString() + 
                       ", 64bit:" + Environment.Is64BitOperatingSystem.ToString());
-            
+
             // выполняем проверки окружения
             if (!CheckComponents()) {
                 MessageBox.Show("Не все необхдимые компоненты установлены на ПК.\r\nПроверьте лог-файл.");
                 return;
             }
-            
+
+
+
+            // ***
+            SpellChecker.Init();
+            Associations.Init();
+            var tt = Google.GetImageDescription(@"C:\1\34\pics\g24889_l2_p1_n1.jpg");
+            tt = tt;
+            // ***
+
+
             // создаём форму, передаём её управление
             //CreateMainForm();
             //System.Windows.Forms.Application.Run(Mainform);

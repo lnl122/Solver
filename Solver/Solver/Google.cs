@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 
 namespace Solver
 {
+    // public static Words GetImageDescription(string filepath)
+    // public static string UploadFile(string filepath)
+    // public static string ParsingGooglePage(string g)
+    // public static string GetPageByImageUrl(string imgurl)
+    //
     class Google
     {
         // пути
@@ -23,7 +28,7 @@ namespace Solver
         // читаем страницу по урлу, отрезаем шапку
         // вход - урл картинки
         // выход - страница гугля
-        private static string GetPageByImageUrl(string imgurl)
+        public static string GetPageByImageUrl(string imgurl)
         {
             string gurl = googleRU + imgurl;
             WebClient wc = new WebClient();
@@ -62,7 +67,7 @@ namespace Solver
         // парсим текст страницы
         // вход - страница
         // выход - текст со страницы после парсинга
-        private static string ParsingGooglePage(string g)
+        public static string ParsingGooglePage(string g)
         {
             if (g.Length < 1)
             {
@@ -156,6 +161,16 @@ namespace Solver
             return g;
         }
 
+        // аплоад картинки по пути, получени внешней ссылки - заглушка для возможности выбора сервиса аплоада
+        // *** сделать привязку к настройкам
+        // *** добавить в проверки при старте полный цикл: картинка (чебурашка) распознавание + ассоциации = проверяемый результат (гена)
+        // вход - путь к локальной картинке
+        // выход - урл картинки после аплоада
+        public static string UploadFile(string fp)
+        {
+            return UploadFileIpic(fp);
+        }
+        
         // аплоад картинки по пути, получени внешней ссылки
         // вход - путь к локальной картинке
         // выход - урл картинки после аплоада
@@ -197,7 +212,7 @@ namespace Solver
         // выход - набор слов со страницы гугля
         public static Words GetImageDescription(string path)
         {
-            string a = UploadFileIpic(path);
+            string a = UploadFile(path);
             if (a == "") { return null; }
             string b = GetPageByImageUrl(a);
             if (b == "") { return null; }
