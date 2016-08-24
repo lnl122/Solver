@@ -76,6 +76,10 @@ namespace Solver
                     isDicionaryLoaded = true;
                     Log.Write("words Чтение внешнего словаря завершено");
                 }
+                else
+                {
+                    Log.Write("words ERROR: словаря по указанному пути нет", DictPath);
+                }
             }
         }
 

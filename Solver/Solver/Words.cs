@@ -8,6 +8,13 @@ namespace Solver
     //
     class Words
     {
+        // максимальное количество попыток чтения
+        private static int MaxTryToReadPage = 3;
+        // на сколько миллисекунд засыпать при неудачном одном чтении
+        private static int TimeToSleepMs = 1000;
+
+        public static string UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
+
         private static string[] badwrds = { "на", "для", "из", "по", "как", "не", "от", "что", "это", "или", "вконтакте", "review", "png", "the",
                 "за", "вы", "все", "википедия", "во", "год", "paradise", "том", "эту", "of", "размер", "руб", "бесплатно", "его", "клипарт",
                 "описание", "есть", "картинки", "фотографии", "их", "for", "to", "можно", "мы", "назад", "но", "так", "ми", "они", "он",
@@ -31,9 +38,9 @@ namespace Solver
         public List<string> en;        // слова только из английских букв
         public List<string> en_trans;  // переведенные английские слова
         public List<string> all_find;  // собранные слова без дубликатов в оригинале (ворд_ру + енг_перевод), ранжированные по частоте
-        public List<string> f_b_noun;     // сущ
+        public List<string> f_b_noun;      // сущ
         public List<string> f_b_adjective; // прил
-        public List<string> f_b_verb;    // глагол
+        public List<string> f_b_verb;      // глагол
         public List<string> f_b_others;    // прочие
         public List<string> all_base;  // все слова из найденных, приведенную в базовую форму, ранжированные по частоте
         public List<string> all_assoc; // ассоциации к найденным словам, все подряд
@@ -206,20 +213,35 @@ namespace Solver
             System.Net.WebClient cl = new System.Net.WebClient();
             cl.Encoding = System.Text.Encoding.UTF8;
             string re = "";
-            try
+            bool isNeedReadPage = true;
+            int CountTry = 0;
+            while (isNeedReadPage)
             {
-                re = cl.DownloadString(v2);
-            }
-            catch
-            {
-                Log.Write("words ERROR: не удолось получить базовые слова к");
-                Log.Write("             " + v.Replace("индульгенция ", ""));
+                try
+                {
+                    re = cl.DownloadString(v2);
+                    isNeedReadPage = false;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(TimeToSleepMs);
+                    CountTry++;
+                    if (CountTry == MaxTryToReadPage)
+                    {
+                        Log.Write("words ERROR: не удолось получить базовые слова", v2, v.Replace("индульгенция ", ""));
+                        Log.Store("words", re);
+                        re = "";
+                        isNeedReadPage = false;
+                    }
+                }
             }
             cl.Dispose();
             if (re == "")
             {
+                Log.Write("words ERROR: длина страницы нулевая");
                 return res;
             }
+            Log.Store("words", re);
             int ii1 = re.IndexOf("Начальная форма");
             while (ii1 != -1)
             {
@@ -284,21 +306,39 @@ namespace Solver
             s1 = s1.Substring(2);
             System.Net.WebClient wc1 = new System.Net.WebClient();
             wc1.Encoding = System.Text.Encoding.UTF8;
-            wc1.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
+            wc1.Headers.Add("User-Agent", UserAgent);
             wc1.Headers.Add("Accept-Language", "ru-ru");
             wc1.Headers.Add("Content-Language", "ru-ru");
             string w2 = String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair=en|ru", s1.ToLower());
             string re1 = "";
-            try
+            bool isNeedReadPage = true;
+            int CountTry = 0;
+            while (isNeedReadPage)
             {
-                re1 = wc1.DownloadString(w2);
+                try
+                {
+                    re1 = wc1.DownloadString(w2);
+                    isNeedReadPage = false;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(TimeToSleepMs);
+                    CountTry++;
+                    if (CountTry == MaxTryToReadPage)
+                    {
+                        Log.Write("g_tra ERROR: не удалось выполнить перевод текста ", w2, s1);
+                        Log.Store("g_tra", re1);
+                        re1 = "";
+                        isNeedReadPage = false;
+                    }
+                }
             }
-            catch
+            if (re1 == "")
             {
-                re1 = "";
-                Log.Write("g_tra ERROR: не удалось выполнить перевод текста '" + s1 + "'");
+                Log.Write("g_tra ERROR: длина текста нулевая");
+                return res;
             }
-            if (re1 == "") { return res; }
+            Log.Store("g_tra", re1);
             int ii7 = re1.IndexOf("<span title=\"");
             while (ii7 != -1)
             {

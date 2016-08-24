@@ -121,7 +121,7 @@ namespace Solver
             try { re1 = wc1.DownloadString("http://image.google.com/"); }   catch { Log.Write("check ERROR: http://image.google.com/ не открывается");  return false; }
             try { re1 = wc1.DownloadString("http://game.en.cx/"); }         catch { Log.Write("check ERROR: http://game.en.cx/ не открывается");        return false; }
             try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log.Write("check ERROR: http://jpegshare.net/ не открывается");     return false; }
-            try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log.Write("check ERROR: http://ipic.su/ не открывается");           return false; }
+            //try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log.Write("check ERROR: http://ipic.su/ не открывается");           return false; }
             try { re1 = wc1.DownloadString("http://goldlit.ru/"); }         catch { Log.Write("check ERROR: http://goldlit.ru/ не открывается");        return false; }
             try { re1 = wc1.DownloadString("http://sociation.org/"); }      catch { Log.Write("check ERROR: http://sociation.org/ не открывается");     return false; }
             try { re1 = wc1.DownloadString("https://ru.wiktionary.org/"); } catch { Log.Write("check ERROR: https://ru.wiktionary.org/ не открывается"); return false; }
@@ -130,7 +130,7 @@ namespace Solver
             // все проверки пройдены
             return true;
         }
-        
+
         /*public static string[,] actions = {
             //{ "Решать самостоятельно",      "manual" },
             { "Расчленёнки",                    "raschl" },
@@ -174,223 +174,13 @@ namespace Solver
             public ComboBox gChoice;
             public Button BtnSolve;
         }*/
-        
+
         //public static GameSt dGame = new GameSt();
         //public static MainTabSt GameTab = new MainTabSt();
 
-        /*public struct words
-        {
-            public int level;
-            public prot prot;
-            public int number;
-            public string answer;
-            public string g_variant;
-            public List<string> g_words;
-            public List<string> w_find;
-            public List<string> w_base;
-            public List<string> w_base_all;
-            public List<string> w_assoc;
-            //public List<string> w_all;
-        }*/
         //public enum prot { none, begin1, begin2, begin3, end1, end2, end3 };
-        /*public struct GapoifikaBooks_data
-        {
-            public string type;
-            public int level;//уровень
-            public string def;
-            public List<string> words;
-            public List<string> answers;
-            public TabPage Tab;//таб формы
-            public Button BtnSolve;
-            public Button BtnClose;
-            public System.Windows.Forms.CheckBox Auto;//автовбивать
-            public TextBox TextIn;
-            public TextBox TextOut;
-        }*/
-        /*public struct Pictures_data // все картинки одного уровня 1/2/4 штуки для олимпиек
-        {
-            public string type;
-            public int level;//уровень
-            public List<string> urls;//урлы
-            public string[] ar_urls;//урлы
-            public Picture_data[] pics;//структура каждой пикчи, массив
-            public int pic_cnt;//сколько картинок в улах
-            public TabPage Tab;//таб формы
-            public int olimp_size;//размер олимпийки
-            public prot prot; // какая защита
-            public Button BtnSolve;
-            public Button BtnClose;
-            public System.Windows.Forms.CheckBox Auto;//автовбивать
-            public ComboBox cb_str;//строк
-            public ComboBox cb_col;//колонок
-            public ComboBox cb_protect;//защита
-            public ListBox pics_list;//перечень картинок
-            public NumericUpDown init_num;//нач номер
-            public Label lb_str;
-            public Label lb_col;
-            public Label lb_prot;
-            public Label lb_init;
-            public PictureBox img;
-            public TextBox TextOut;
-        }*/
-        /*public struct Picture_data // для одной картинки, под распознавание 16/20/25 мелких
-        {
-            public Image img;//пикча
-            public Bitmap bmp;//пикча
-            public int level;//уровень
-            public prot prot; // какая защита
-            public int str;//колво строк
-            public int col;//колво колонок
-            public int cnt;//номер части (для нескольких картинок одного задания)
-            public int init_num;//нач номер картинок
-        }*/
-        /*public static words parse_google_page_words(string gtext2)
-        {
-            words w = new words();
-            w.g_words = new List<string>();
 
-            string g = gtext2.Substring(gtext2.IndexOf("<body"));
 
-            string[,] tags = {
-                { "<script>" , "<noscript>" , "<!--z-->", "<style>" , "href=\"", "style=\"", "class=\"", "<form"  , "onmousedown=\"", "value=\"", "<cite" , "data-jiis=\"", "data-ved=\"", "target=\"", "aria-label=\"", "jsl=\"", "id=\"", "data-jibp=\"", "role=\"", "jsaction=\"", "src=\"", "onload=\"", "alt=\"", "title=\"", "width=\"", "height=\"", "data-deferred=\"", "aria-haspopup=\"", "aria-expanded=\"", "<input", "tabindex=\"", "tag=\"", "aria-selected=\"", "name=\"", "type=\"", "action=\"", "method=\"", "autocomplete=\"", "aria-expanded=\"", "aria-grabbed=\"", "data-bucket=\"", "aria-level=\"", "aria-hidden=\"", "aria-dropeffect=\"", "topmargin=\"" , "margin=\"", "data-async-context=\"", "valign=\"", "data-async-context=\"", "\"http://", "\"https://", "unselectable=\"", "{\""     , ",\"rh\":", "<p>"   },
-                { "</script>", "</noscript>", "</body>" , "</style>", "\""     , "\""      , "\""      , "</form>", "\""            , "\""      , "/cite>", "\""          , "\""         , "\""       , "\""           , "\""    , "\""   , "\""          , "\""     , "\""         , "\""    , "\""       , "\""    , "\""      ,"\""       , "\""       , "\""              , "\""              , "\""              , ">"     , "\""         , "\""    , "\""              , "\""     , "\""     , "\""       , "\""       , "\""             , "\""              , "\""             , "\""            , "\""           , "\""            , "\""                , "\""           , "\""       , "\""                   , "\""       , "\""                   , "\""       , "\""        , "\""             , ",\"pt\":", "}"       , "</p>"  }
-            };
-            int tags_len = tags.Length / 2;
-            bool fl = true;
-            for (int i = 0; i < tags_len; i++)
-            {
-                fl = true;
-                while (fl)
-                {
-                    fl = false;
-                    int i1 = g.IndexOf(tags[0, i]);
-                    if (i1 != -1)
-                    {
-                        string g2 = g.Substring(i1 + tags[0, i].Length);
-                        int i2 = g2.IndexOf(tags[1, i]);
-                        g = g.Substring(0, i1) + g2.Substring(i2 + tags[1, i].Length);
-                        fl = true;
-                    }
-                }
-            }
-            int svi = g.IndexOf(">Скорее всего, на картинке");
-            string sv = "";
-            if (svi != -1)
-            {
-                sv = g.Substring(g.IndexOf(">Скорее всего, на картинке") + 26).Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" >", ">");
-                sv = sv.Substring(sv.IndexOf("<a>") + 3);
-                sv = sv.Substring(0, sv.IndexOf("</a>"));
-            }
-            w.g_variant = sv;
-
-            g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" >", ">");
-            g = g.Replace("<div>", " ").Replace("</div>", " ").Replace("<span>", " ").Replace("</span>", " ").Replace("<button>", " ").Replace("</button>", " ");
-            g = g.Replace("<ol>", " ").Replace("</ol>", " ").Replace("<li>", " ").Replace("</li>", " ").Replace("<a data-p>", " ").Replace("</ul>", " ").Replace("<ul>", " ").Replace("<em>", " ").Replace("</em>", " ");
-            g = g.Replace("<table>", " ").Replace("</table>", " ").Replace("<td>", " ").Replace("</td>", " ").Replace("<tr>", " ").Replace("</tr>", " ").Replace("<div data-async->", " ").Replace("<div e>", " ");
-            g = g.Replace("<textarea>", " ").Replace("</textarea>", " ").Replace("<a data-p>", " ").Replace(" data-rt", "").Replace("<g-img><img></g-img>", " ").Replace("<div data-hve>", " ").Replace("</body></html>", " ").Replace("<img>", " ").Replace("<a></a>", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Replace("<a>Сохраненная&nbsp;копия</a>", " ").Replace("<g-review-stars></g-review-stars>", " ").Replace("<a>Похожие</a>", " ").Replace("<h3>", " ").Replace("</h3>", " ").Replace("<h2>", " ").Replace("</h2>", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Replace("<a>Пожаловаться</a>", " ").Replace("<a>Отмена</a>", " ").Replace("Пожаловаться на содержание картинки.", " ").Replace("<a>Пожаловаться на другую картинку.</a>", " ").Replace("<a>Пожаловаться на картинки</a>", " ").Replace("<a>Похожие изображения</a>", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Replace("<body margin>", " ").Replace("<br>", " ").Replace("&nbsp;", " ").Replace("</a>", " ").Replace("<a>", " ").Replace("<!--m-->", " ").Replace("<!--n-->", " ").Replace("<hr>", " ").Replace("</html>", " ").Replace("<div>", " ").Replace("\"", " ").Replace("Результаты поиска", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Replace(",", " ").Replace(".", " ").Replace("(", " ").Replace(")", " ").Replace("-", " ").Replace("!", " ").Replace("?", " ").Replace(":", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("< ", "<").Replace(" >", ">").Replace("<a>", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Substring(g.LastIndexOf("</p>") + 4);
-            g = g.Replace("Размер изображения", " ").Replace("Страницы с подходящими изображениями", " ").Replace("Изображения других размеров не найдены", " ").Replace("Скорее всего на картинке", " ").Replace("Благодарим за замечания", " ").Replace("\\u0026quot;", " ").Replace("  ", " ").Replace("  ", " ").Replace("ВКонтакте", "").Replace("ВКонтакте", "").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Replace("Есть изображения других размеров", " ").Replace("Все размеры", " ").Replace("Маленькие", " ").Replace("Средние", " ").Replace("Большие", " ").Replace("&middot;", " ").Replace("&quot;", " ").Replace("YouTube", " ").Replace("#", " ").Replace("×", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Replace("<wbr>", " ").Replace("—", " ").Replace("<", " ").Replace(">", " ").Replace("\"", " ").Replace("&times;", " ").Replace("\\", " ").Replace("|", " ").Replace("«", " ").Replace("»", " ").Replace("/", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            g = g.Replace("u2014", " ").Replace(";", " ").Replace("+", " ").Replace(" ", " ").Replace(" ", " ").Replace(" ", " ");
-
-            g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-
-            g = (" " + sv + " " + g + " ").Replace("  ", " ");
-            //foreach (string bw in bad_words) { g = g.Replace(" " + bw.ToLower() + " ", " ").Replace(" " + bw.ToUpper() + " ", " ").Replace(" " + bw.Substring(0, 1).ToUpper() + bw.Substring(1).ToLower() + " ", " ").Replace("  ", " ").Replace("  ", " "); }
-            g = g.Trim().TrimEnd().TrimStart();
-            string[] parts = g.Split(' ');
-            string[] part_str = new string[parts.Length];
-            int[] part_len = new int[parts.Length];
-            for (int i = 0; i < parts.Length; i++) { part_len[i] = 0; part_str[i] = ""; }
-            int max_idx = 0;
-            foreach (string part in parts)
-            {
-                if (part.Length < 3) { continue; } // too short
-                int idx = Array.IndexOf(part_str, part);
-                if (idx == -1)
-                { // new
-                    part_str[max_idx] = part;
-                    part_len[max_idx]++;
-                    max_idx++;
-                }
-                else
-                { // exiting
-                    part_len[idx]++;
-                }
-            }
-            for (int cur_idx = 0; cur_idx < max_idx; cur_idx++)
-            {
-                string vv = part_str[cur_idx];
-                if (part_len[cur_idx] < 3) // 1 or 2 times in text
-                {
-                    part_str[cur_idx] = "";
-                }
-                if (vv.Length > 0) // for non-empty string
-                {
-                    char ch = vv[0];
-                    char chl = vv.ToLower()[0];
-                    //if ((chl >= 'a') && (chl <= 'z') && (chl == ch)) // english words, starts with small letter
-                    //{
-                    //    part_str[cur_idx] = "";
-                    //}
-                    int tempint;
-                    if (Int32.TryParse(vv, out tempint)) // string as number
-                    {
-                        part_str[cur_idx] = "";
-                    }
-                    //if (wordApp.CheckSpelling(vv.Substring(0, 1).ToUpper() + vv.Substring(1, vv.Length - 1)) == false)
-                    //{
-                    //    part_str[cur_idx] = "";
-                    //}
-                }
-
-                part_str[cur_idx] = part_str[cur_idx].ToLower(); // others - to lower case
-            }
-            // убрать дупы
-            string[] part_end = part_str.Distinct().ToArray();
-
-            //foreach (string sa in part_end) { w.g_words.Add(sa); } // позже, после сортировки
-
-            int[] part_end_cnt = new int[part_end.Length];
-            for (int i = 0; i < part_end.Length; i++) { part_end_cnt[i] = 0; }
-            for (int i = 0; i < part_end.Length; i++)
-            {
-                for (int cur_idx = 0; cur_idx < max_idx; cur_idx++)
-                {
-                    if (part_end[i] == part_str[cur_idx])
-                    {
-                        part_end_cnt[i] += part_len[cur_idx];
-                    }
-                }
-            }
-
-            // отсортировать по part_end_cnt http://goldlit.ru/component/slog?words= %D0 %BC %D0 %B0 %D1 %87 %D0 %B5 %D1 %85 %D0 %B0 +  %D1 %85 %D0 %B0 + %D1 %85 %D0 %B0
-            int m = part_end.Length;
-            for (int i = 0; i < m; i++)
-            {
-                for (int j = 0; j < m; j++)
-                {
-                    if (i == j) { continue; }
-                    if (part_end_cnt[i] > part_end_cnt[j])
-                    {
-                        int a = part_end_cnt[j];
-                        part_end_cnt[j] = part_end_cnt[i];
-                        part_end_cnt[i] = a;
-                        string b = part_end[j];
-                        part_end[j] = part_end[i];
-                        part_end[i] = b;
-                    }
-                }
-            }
-            foreach (string sa in part_end) { if (sa != "") { w.g_words.Add(sa); } }
-            return w;
-        }
-        */
         /*public static List<Program.words> words_to_engine(List<Program.words> q, string s)
         {
             List<Program.words> w = new List<Program.words>();
@@ -419,170 +209,7 @@ namespace Solver
             Program.input_busy = false;
             return w;
         }*/
-        /*public static List<Program.words> words_find_base(List<Program.words> q)
-        {
-            List<Program.words> w = new List<Program.words>();
-            foreach (Program.words q1 in q)
-            {
-                Program.words w1 = q1;
-                w1.w_base = new List<string>();
-                w1.w_base_all = new List<string>();
-                if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
-                string[] ss = Program.get_start_word(String.Join(" ", w1.w_find.Distinct().ToArray())).Split(' ');
-                foreach (string s2 in ss)
-                {
-                    w1.w_base_all.Add(s2);
-                    if (!w1.w_find.Contains(s2)) { w1.w_base.Add(s2); }
-                }
-                w1.w_base_all = new List<string>(w1.w_base_all.Distinct().ToArray());
-                w.Add(w1);
-            }
-            return w;
-        }*/
-        /*public static List<Program.words> words_find_base_s(List<Program.words> q)
-        {
-            List<Program.words> w = new List<Program.words>();
-            foreach (Program.words q1 in q)
-            {
-                Program.words w1 = q1;
-                w1.w_base = new List<string>();
-                w1.w_base_all = new List<string>();
-                if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
-                string[] ss = Program.get_start_word_s(String.Join(" ", w1.w_find.Distinct().ToArray())).Split(' ');
-                foreach (string s2 in ss)
-                {
-                    w1.w_base_all.Add(s2);
-                    if (!w1.w_find.Contains(s2)) { w1.w_base.Add(s2); }
-                }
-                w1.w_base_all = new List<string>(w1.w_base_all.Distinct().ToArray());
-                w.Add(w1);
-            }
-            return w;
-        }*/
-        /*public static List<Program.words> words_base_assoc(List<Program.words> q)
-        {
-            //List<string> get_assoc_word(string v, int max_res_cnt=10000)
-            List<Program.words> w = new List<Program.words>();
-            foreach (Program.words q1 in q)
-            {
-                Program.words w1 = q1;
-                w1.w_assoc = new List<string>();
-                if ((w1.answer != "") && (w1.answer != null)) { w.Add(w1); continue; }
-                if (w1.w_base_all.Count >= 5) { w.Add(w1); continue; }
-                foreach (string s2 in w1.w_base) { w1.w_assoc.AddRange(Associations.Get(s2, 10)); }
-                w1.w_assoc = new List<string>(w1.w_assoc.Distinct().ToArray());
-                w.Add(w1);
-            }
-            return w;
-        }*/
-        /*public static string get_start_word(string v)
-        {
-            Encoding utf8 = Encoding.UTF8;
 
-            string v2 = "";
-            if (v == "") { return ""; }
-            v = "индульгенция " + v;
-            byte[] b4 = utf8.GetBytes(v.ToLower());
-            for (int j = 0; j < b4.Length; j++)
-            {
-                if (b4[j] != 32)
-                {
-                    v2 += "%" + b4[j].ToString("X");
-                }
-                else
-                {
-                    v2 += "+";
-                }
-            }
-            v2 = "http://goldlit.ru/component/slog?words=" + v2;
-            WebClient cl = new WebClient();
-            cl.Encoding = System.Text.Encoding.UTF8;
-            bool ffl = true;
-            string re = "";
-            while (ffl)
-            {
-                try
-                {
-                    re = cl.DownloadString(v2);
-                    ffl = false;
-                }
-                catch
-                {
-                    Thread.Sleep(1000);
-                }
-            }
-            cl.Dispose();
-            List<string> v3 = new List<string>();
-            int ii1 = re.IndexOf("Начальная форма");
-            while (ii1 != -1)
-            {
-                re = re.Substring(ii1);
-                re = re.Substring(re.IndexOf(":") + 1);
-                string v5 = re.Substring(0, re.IndexOf("<")).ToLower().TrimEnd().TrimStart();
-                v3.Add(v5);
-                ii1 = re.IndexOf("Начальная форма");
-            }
-            v3.Remove("индульгенция");
-            return String.Join(" ", v3.Distinct().ToArray());
-        }*/
-        /*public static string get_start_word_s(string v)
-        {
-            Encoding utf8 = Encoding.UTF8;
-
-            string v2 = "";
-            if (v == "") { return ""; }
-            v = "индульгенция " + v;
-            byte[] b4 = utf8.GetBytes(v.ToLower());
-            for (int j = 0; j < b4.Length; j++)
-            {
-                if (b4[j] != 32)
-                {
-                    v2 += "%" + b4[j].ToString("X");
-                }
-                else
-                {
-                    v2 += "+";
-                }
-            }
-            v2 = "http://goldlit.ru/component/slog?words=" + v2;
-            WebClient cl = new WebClient();
-            cl.Encoding = System.Text.Encoding.UTF8;
-            bool ffl = true;
-            string re = "";
-            while (ffl)
-            {
-                try
-                {
-                    re = cl.DownloadString(v2);
-                    ffl = false;
-                }
-                catch
-                {
-                    Thread.Sleep(1000);
-                }
-            }
-            cl.Dispose();
-            List<string> v3 = new List<string>();
-
-
-            int ii1 = re.IndexOf("Начальная форма");
-            while (ii1 != -1)
-            {
-                re = re.Substring(ii1);
-                re = re.Substring(re.IndexOf(":") + 1);
-                string v5 = re.Substring(0, re.IndexOf("<")).ToLower().TrimEnd().TrimStart();
-                re = re.Substring(re.IndexOf("Часть речи") + 1);
-                re = re.Substring(re.IndexOf(":") + 1);
-                string v5_s = re.Substring(0, re.IndexOf("<")).ToLower().TrimEnd().TrimStart();
-                if (v5_s == "существительное") { v3.Add(v5); }
-                ii1 = re.IndexOf("Начальная форма");
-            }
-
-
-            v3.Remove("индульгенция");
-            return String.Join(" ", v3.Distinct().ToArray());
-        }
-        */
         /*public static string Game_Logon(string url1, string name, string pass)
         {
             string formParams = string.Format("Login={0}&Password={1}", name, pass);
@@ -603,37 +230,7 @@ namespace Solver
             using (StreamReader sr = new StreamReader(resp.GetResponseStream())) { pageSource = sr.ReadToEnd(); }
             return pageSource;
         }*/
-        /*public static string parse_html_body(string g)
-        {
-            g = g.Substring(g.IndexOf("<body>")+6).Replace("</body>", "").Replace("</html>", "");
-            string[,] tags = {
-                { "<script"  , "<noscript>" , "<style>" , "onmousedown=\"", "value=\"", "data-jiis=\"", "data-ved=\"", "aria-label=\"", "jsl=\"", "id=\"", "data-jibp=\"", "role=\"", "jsaction=\"", "onload=\"", "alt=\"", "title=\"", "width=\"", "height=\"", "data-deferred=\"", "aria-haspopup=\"", "aria-expanded=\"", "<input", "tabindex=\"", "tag=\"", "aria-selected=\"", "name=\"", "type=\"", "action=\"", "method=\"", "autocomplete=\"", "aria-expanded=\"", "aria-grabbed=\"", "data-bucket=\"", "aria-level=\"", "aria-hidden=\"", "aria-dropeffect=\"", "topmargin=\"" , "margin=\"", "data-async-context=\"", "valign=\"", "data-async-context=\"", "unselectable=\"", "<!--", "ID=\"", "style=\"" , "class=\"" , "//<![CDATA[" , "border=\"" , "cellspacing=\"" , "cellpadding=\"" , "target=\"" , "colspan=\"" , "onclick=\"" , "align=\"" , "color=\"" , "nowrap=\"" , "vspace=\"" },
-                { "</script>", "</noscript>", "</style>", "\""            , "\""      , "\""          , "\""         , "\""           , "\""    , "\""   , "\""          , "\""     , "\""         , "\""       , "\""    , "\""      ,"\""       , "\""       , "\""              , "\""              , "\""              , ">"     , "\""         , "\""    , "\""              , "\""     , "\""     , "\""       , "\""       , "\""             , "\""              , "\""             , "\""            , "\""           , "\""            , "\""                , "\""           , "\""       , "\""                   , "\""       , "\""                   , "\""             , "-->" , "\""   , "\""       , "\""       , "//]]>"       , "\""        , "\""             , "\""             , "\""        , "\""         , "\""         , "\""       , "\""       , "\""        , "\""        }
-            };
-            int tags_len = tags.Length / 2;
-            bool fl = true;
-            for (int i = 0; i < tags_len; i++)
-            {
-                fl = true;
-                while (fl)
-                {
-                    fl = false;
-                    int i1 = g.IndexOf(tags[0, i]);
-                    if (i1 != -1)
-                    {
-                        string g2 = g.Substring(i1 + tags[0, i].Length);
-                        int i2 = g2.IndexOf(tags[1, i]);
-                        g = g.Substring(0, i1) + g2.Substring(i2 + tags[1, i].Length);
-                        fl = true;
-                    }
-                }
-            }
-            g = g.Trim().Replace("\t"," ").Replace("&nbsp;", " ").Replace("<br/>", "\r\n").Replace("<b>", " ").Replace("</b>", " ").Replace("<u>", " ").Replace("</u>", " ").Replace("<i>", " ").Replace("</i>", " ").Trim();
-            g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" \r\n", "\r\n").Replace("\r\n ", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace(" >", ">").Replace("<br/>", "\r\n").Replace("<br />", "").Replace("\r\n\r\n", "\r\n");
-            g = g.Replace("<div>", "").Replace("</div>", "").Replace("<span>", "").Replace("</span>", "");
-            g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace(" \r\n", "\r\n").Replace("\r\n ", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace("\r\n\r\n", "\r\n").Replace(" >", ">").Replace("<br/>", "\r\n").Replace("<br />", "").Replace("\r\n\r\n", "\r\n");
-            return g;
-        }*/
+
         /*public static string get_game_page(string url)
         {
             string ps = "";
@@ -681,31 +278,7 @@ namespace Solver
             t1 = t1.Replace("\r\n)\r\n", ")\r\n");
             return t1;
         }*/
-        /*public static string get_task_type_by_name(string abc)
-        {
-            for (int i = 0; i < (actions.Length / 2); i++)
-            {
-                if (abc == actions[i, 0])
-                {
-                    return actions[i, 1];
-                }
-            }
-            return "";
-        }*/
-        /*public static System.Collections.Generic.List<string> get_list_of_urls_from_text(string abc)
-        {
-            var L1 = new System.Collections.Generic.List<string>();
-            string[] lines = Regex.Split(abc, "\r\n");
-            foreach (string str in lines)
-            {
-                if (str.Length < 5) { continue; }
-                if (str.Substring(0, 4) == "http")
-                {
-                    L1.Add(str);
-                }
-            }
-            return L1;
-        }*/
+
         /*public static string set_word_protect(string v, int num, Program.prot p)
         {
             string vv = "000";
@@ -746,44 +319,44 @@ namespace Solver
             req.Referer = url;
             req.KeepAlive = true;
             */
-            //req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
-            /*req.CookieContainer = dGame.game_cCont;
-            req.ContentType = "application/x-www-form-urlencoded";
-            req.Method = "POST";
-            string formParams = string.Format("LevelId={0}&LevelNumber={1}&LevelAction.Answer={2}", LevelId, LevelNumber, val);
-            byte[] bytes = Encoding.UTF8.GetBytes(formParams);
-            req.ContentLength = bytes.Length;
-            using (Stream os = req.GetRequestStream())
-            {
-                os.Write(bytes, 0, bytes.Length);
-            }
-            string ps = "";
-            HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
-            using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
-            {
-                ps = sr.ReadToEnd();
-            }
+        //req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+        /*req.CookieContainer = dGame.game_cCont;
+        req.ContentType = "application/x-www-form-urlencoded";
+        req.Method = "POST";
+        string formParams = string.Format("LevelId={0}&LevelNumber={1}&LevelAction.Answer={2}", LevelId, LevelNumber, val);
+        byte[] bytes = Encoding.UTF8.GetBytes(formParams);
+        req.ContentLength = bytes.Length;
+        using (Stream os = req.GetRequestStream())
+        {
+            os.Write(bytes, 0, bytes.Length);
+        }
+        string ps = "";
+        HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
+        using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
+        {
+            ps = sr.ReadToEnd();
+        }
 
-            ps = ps.Replace("\t", "").Replace("\n", "").Replace("\r", "");
-            ps = ps.Substring(ps.IndexOf("<ul class=\"history\">"));
-            ps = ps.Substring(0, ps.IndexOf("</ul>")).Replace("<ul class=\"history\">", "").Replace("</li>", "");
-            string[] hist = Regex.Split(ps, "<li");
-            foreach (string str in hist)
+        ps = ps.Replace("\t", "").Replace("\n", "").Replace("\r", "");
+        ps = ps.Substring(ps.IndexOf("<ul class=\"history\">"));
+        ps = ps.Substring(0, ps.IndexOf("</ul>")).Replace("<ul class=\"history\">", "").Replace("</li>", "");
+        string[] hist = Regex.Split(ps, "<li");
+        foreach (string str in hist)
+        {
+            int i1 = str.IndexOf(">" + dGame.username + "<");
+            int i2 = str.IndexOf(">" + val + "<");
+            if ((i1 != -1) && (i2 != -1))
             {
-                int i1 = str.IndexOf(">" + dGame.username + "<");
-                int i2 = str.IndexOf(">" + val + "<");
-                if ((i1 != -1) && (i2 != -1))
+                int i3 = str.IndexOf("class=\"correct\"");
+                if (i3 != -1)
                 {
-                    int i3 = str.IndexOf("class=\"correct\"");
-                    if (i3 != -1)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
-            Log("bad_answer="+ val);
-            return false;
-        }*/
+        }
+        Log("bad_answer="+ val);
+        return false;
+    }*/
 
         /*public static void Event_SolveLevel(object sender, EventArgs e)
         {
@@ -1238,6 +811,25 @@ namespace Solver
         }
         */
 
+        // инициализируем наши объекты
+        public static void InitComponents()
+        {
+            string localpath = Environment.CurrentDirectory + @"\Data\";
+            SpellChecker.Init();
+            SpellChecker.LoadDictionary(localpath + "SpChDict.dat");
+            Associations.Init();
+            Associations.LoadDictionary(localpath + "AssocDict.dat");
+
+        }
+
+        // завершаем работы наших объектов
+        public static void CloseComponents()
+        {
+            SpellChecker.SaveDictionary();
+            Associations.SaveDictionary();
+        }
+
+        // код основной программы
         static void Main(string[] args)
         {
             // инитим лог
@@ -1246,22 +838,21 @@ namespace Solver
             Log.Write("      Старт программы..");
             Log.Write("      Сборка от " + File.GetCreationTime(Process.GetCurrentProcess().MainModule.FileName).ToString());
             Log.Write("      ПК: " + Environment.MachineName);
-            Log.Write("      " + System.Environment.OSVersion.VersionString + ", " + Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") + 
-                      ", ver:" + Environment.Version.ToString() + ", CPU: " + Environment.ProcessorCount.ToString() + 
-                      ", 64bit:" + Environment.Is64BitOperatingSystem.ToString());
+            Log.Write("      " + System.Environment.OSVersion.VersionString + ", " + Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") + ", ver:" + Environment.Version.ToString() + ", CPU: " + Environment.ProcessorCount.ToString() + ", 64bit:" + Environment.Is64BitOperatingSystem.ToString());
 
             // выполняем проверки окружения
             if (!CheckComponents()) {
                 MessageBox.Show("Не все необхдимые компоненты установлены на ПК.\r\nПроверьте лог-файл.");
                 return;
             }
+            // инициализируем наши собственные компоненты
+            InitComponents();
 
 
 
             // ***
-            SpellChecker.Init();
-            Associations.Init();
-            var tt = Google.GetImageDescription(@"C:\1\34\pics\g24889_l2_p1_n1.jpg");
+            //var tt = Google.UploadFile_pixicru(@"C:\1\34\pics\g24889_l2_p1_n4.jpg");
+            var tt = Google.GetImageDescription(@"C:\1\34\pics\g24889_l2_p1_n4.jpg");
             tt = tt;
             // ***
 
@@ -1271,6 +862,7 @@ namespace Solver
             //System.Windows.Forms.Application.Run(Mainform);
 
             // закругляемся
+            CloseComponents();
             Log.Write("Выход из программы..");
             Log.Close();
         }

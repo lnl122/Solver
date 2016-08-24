@@ -81,6 +81,10 @@ namespace Solver
                     isDicionaryLoaded = true;
                     Log.Write("assoc Чтение словаря ассоциаций завершено");
                 }
+                else
+                {
+                    Log.Write("assoc ERROR: словаря по указанному пути нет", DictPath);
+                }
             }
         }
 
@@ -133,8 +137,8 @@ namespace Solver
                     CountTry++;
                     if (CountTry == MaxTryToReadPage)
                     {
-                        Log.Write("assoc ERROR: sociation.org не отдал страницу с " + MaxTryToReadPage + " попыток.");
-                        Log.Write("assoc ERROR: Проверяемый слова были: " + word);
+                        Log.Write("assoc ERROR: sociation.org не отдал страницу с " + MaxTryToReadPage + " попыток.", url, word);
+                        Log.Store("assoc", Page);
                         Page = "";
                         isNeedReadPage = false;
                     }
@@ -143,6 +147,7 @@ namespace Solver
             WebClient.Dispose();
             if (Page.Length <= 0)
             {
+                Log.Write("assoc ERROR: длина страницы нулевая");
                 return "";
             }
             Page = Page.ToLower().Replace("\t", " ").Replace("\n", " ");
@@ -150,9 +155,12 @@ namespace Solver
             int body2 = Page.IndexOf("</body>");
             if ((body1 == -1) || (body2 == -1))
             {
+                Log.Write("assoc ERROR: нет тегов <body> у страницы");
+                Log.Store("assoc", Page);
                 return "";
             }
             Page = Page.Substring(body1 + 6, body2 - body1 - 6);
+            Log.Store("assoc", Page);
             return Page;
         }
 

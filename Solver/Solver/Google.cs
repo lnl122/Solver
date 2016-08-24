@@ -19,6 +19,12 @@ namespace Solver
         // пути
         private static string googleRU = "https://www.google.ru/searchbyimage?&hl=ru-ru&lr=lang_ru&image_url=";
         private static string IpicUri = "http://ipic.su";
+        // максимальное количество попыток чтения
+        private static int MaxTryToReadPage = 3;
+        // на сколько миллисекунд засыпать при неудачном одном чтении
+        private static int TimeToSleepMs = 1000;
+
+        public static string UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
 
         private static string[,] tags = {
                 { "<script"  , "<noscript>" , "<style>" , "onmousedown=\"", "value=\"", "data-jiis=\"", "data-ved=\"", "aria-label=\"", "jsl=\"", "id=\"", "data-jibp=\"", "role=\"", "jsaction=\"", "onload=\"", "alt=\"", "title=\"", "width=\"", "height=\"", "data-deferred=\"", "aria-haspopup=\"", "aria-expanded=\"", "<input", "tabindex=\"", "tag=\"", "aria-selected=\"", "name=\"", "type=\"", "action=\"", "method=\"", "autocomplete=\"", "aria-expanded=\"", "aria-grabbed=\"", "data-bucket=\"", "aria-level=\"", "aria-hidden=\"", "aria-dropeffect=\"", "topmargin=\"" , "margin=\"", "data-async-context=\"", "valign=\"", "data-async-context=\"", "unselectable=\"", "<!--", "ID=\"", "style=\"" , "class=\"" , "//<![CDATA[" , "border=\"" , "cellspacing=\"" , "cellpadding=\"" , "target=\"" , "colspan=\"" , "onclick=\"" , "align=\"" , "color=\"" , "nowrap=\"" , "vspace=\"" , "href=\"" , "src=\"", "<cite"  , "{\"", "<g-img"  , "<a data-"   },
@@ -33,24 +39,38 @@ namespace Solver
             string gurl = googleRU + imgurl;
             WebClient wc = new WebClient();
             wc.Encoding = System.Text.Encoding.UTF8;
-            wc.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1");
+            wc.Headers.Add("User-Agent", UserAgent);
             wc.Headers.Add("Accept-Language", "ru-ru");
             wc.Headers.Add("Content-Language", "ru-ru");
             string page = "";
-            try
+            bool isNeedReadPage = true;
+            int CountTry = 0;
+            while (isNeedReadPage)
             {
-                page = wc.DownloadString(gurl);
-            }
-            catch
-            {
-                Log.Write("g_img ERROR: не удалось получить страницу гугля для изображение по ссылке " + imgurl);
-                page = "";
+                try
+                {
+                    page = wc.DownloadString(gurl);
+                    isNeedReadPage = false;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(TimeToSleepMs);
+                    CountTry++;
+                    if (CountTry == MaxTryToReadPage)
+                    {
+                        Log.Write("g_img ERROR: не удалось получить страницу гугля для изображение по ссылке ", imgurl);
+                        Log.Store("g_img", page);
+                        page = "";
+                        isNeedReadPage = false;
+                    }
+                }
             }
             wc.Dispose();
             wc = null;
 
             if (page.Length <= 0)
             {
+                Log.Write("g_img ERROR: длина строки нулевая");
                 return "";
             }
             page = page.ToLower().Replace("\t", " ").Replace("\n", " ");
@@ -58,9 +78,12 @@ namespace Solver
             int body2 = page.IndexOf("</body>");
             if ((body1 == -1) || (body2 == -1))
             {
+                Log.Write("g_img ERROR: нет тегов <body> у страницы");
+                Log.Store("g_img", page);
                 return "";
             }
             page = page.Substring(body1 + 5, body2 - body1 - 5);
+            Log.Store("g_img", page);
             return page;
         }
 
@@ -168,13 +191,58 @@ namespace Solver
         // выход - урл картинки после аплоада
         public static string UploadFile(string fp)
         {
-            return UploadFileIpic(fp);
+            return UploadFile_pixicru(fp);
         }
-        
+
         // аплоад картинки по пути, получени внешней ссылки
         // вход - путь к локальной картинке
         // выход - урл картинки после аплоада
-        private static string UploadFileIpic(string filepath)
+        public static string UploadFile_pixicru(string filepath)
+        {
+            string filename = filepath.Substring(filepath.LastIndexOf("\\") + 1);
+            string uriaction = "http://www.pixic.ru/";
+            HttpClient httpClient = new HttpClient();
+            //System.Net.ServicePointManager.Expect100Continue = false;
+            MultipartFormDataContent form = new MultipartFormDataContent();
+            form.Add(new StringContent("1"), "send");
+            var streamContent2 = new StreamContent(File.Open(filepath, FileMode.Open));
+            form.Add(streamContent2, "file1", filename);
+            string sd = "";
+            try
+            {
+                Task<HttpResponseMessage> response = httpClient.PostAsync(uriaction, form);
+                HttpResponseMessage res2 = response.Result;
+                res2.EnsureSuccessStatusCode();
+                HttpContent Cont = res2.Content;
+                httpClient.Dispose();
+                sd = res2.Content.ReadAsStringAsync().Result;
+                Log.Store("upld1", sd);
+                sd = sd.Substring(sd.IndexOf("large_input") + ("large_input").Length);
+                sd = sd.Substring(sd.IndexOf("value='") + 7);
+                sd = sd.Substring(0, sd.IndexOf("'"));
+            }
+            catch
+            {
+                Log.Write("upld1 ERROR: pixicru не удалось выполнить аплоад картинки ", uriaction, filepath);
+                sd = "";
+            }
+            if (sd.Length < 5)
+            {
+                Log.Write("upld1 ERROR: pixicru вернулась слишком короткая ссылка", sd, filepath);
+                sd = "";
+            }
+            if (sd.Substring(0,4) != "http")
+            {
+                Log.Write("upld1 ERROR: pixicru то что вернулось не является ссылкой http", sd, filepath);
+                sd = "";
+            }
+            return sd;
+        }
+
+        // аплоад картинки по пути, получени внешней ссылки
+        // вход - путь к локальной картинке
+        // выход - урл картинки после аплоада
+        private static string UploadFile_ipicsu(string filepath)
         {
             string filename = filepath.Substring(filepath.LastIndexOf("\\") + 1);
             string uriaction = IpicUri + "/";
@@ -196,13 +264,14 @@ namespace Solver
                 HttpContent Cont = res2.Content;
                 httpClient.Dispose();
                 sd = res2.Content.ReadAsStringAsync().Result;
+                Log.Store("upld1", sd);
                 sd = sd.Substring(sd.IndexOf("[edit]") + 6);
                 sd = sd.Substring(sd.IndexOf("value=\"") + 7);
                 sd = sd.Substring(0, sd.IndexOf("\""));
             }
             catch
             {
-                Log.Write("g_img ERROR: не удалось выполнить аплоад картинки " + filepath);
+                Log.Write("upld1 ERROR: не удалось выполнить аплоад картинки ", uriaction, filepath);
                 sd = "";
             }
             return sd;
