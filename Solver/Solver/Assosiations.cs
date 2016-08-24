@@ -20,13 +20,16 @@ namespace Solver
     {
         // словари
         private static List<string> words;
+        private static List<string> badwords;
         private static List<List<string>> assoc;
         // путь к словарю
         private static string DictionaryPath = "";
+        private static string DictionaryBadPath = "";
         // первое создание объекта уже было?
         private static bool isObjectReady = false;
         // словарь был ли загружен?
         private static bool isDicionaryLoaded = false;
+        private static bool isDicionaryLoadedBad = false;
         // максимальное количество попыток чтения
         private static int MaxTryToReadPage = 3;
         // на сколько миллисекунд засыпать при неудачном одном чтении
@@ -40,13 +43,43 @@ namespace Solver
             //инициализация одного объекта, если ранее не инициализировали
             if (isObjectReady == false)
             {
+                badwords = new List<string>();
                 words = new List<string>();
                 assoc = new List<List<string>>();
                 isObjectReady = true;
             }
         }
 
-        // чтение словаря
+        // чтение словаря плохих слов, на которые нет ассоциаций
+        public static void LoadDictionaryBad(string DictPath)
+        {
+            Log.Write("assoc Чтение словаря плохих ассоциаций начато");
+            if (isObjectReady == false) { return; }
+            // если словарь не загружен
+            if (isDicionaryLoadedBad == false)
+            {
+                // проверить путь на валидность
+                if (System.IO.File.Exists(DictPath) == true)
+                {
+                    string[] dict; // временный массив
+                    dict = System.IO.File.ReadAllLines(DictPath);
+                    DictionaryBadPath = DictPath;
+                    // переносим в List
+                    foreach (string s1 in dict)
+                    {
+                        badwords.Add(s1);
+                    }
+                    isDicionaryLoadedBad = true;
+                    Log.Write("assoc Чтение словаря плохих ассоциаций завершено");
+                }
+                else
+                {
+                    Log.Write("assoc ERROR: словаря по указанному пути нет", DictPath);
+                }
+            }
+        }
+
+        // чтение словаря ассоциаций
         public static void LoadDictionary(string DictPath)
         {
             Log.Write("assoc Чтение словаря ассоциаций начато");
@@ -95,7 +128,7 @@ namespace Solver
         }
         */
 
-        // обновление словаря на диске
+        // обновление словаря ассоциаций на диске
         public static void SaveDictionary()
         {
             Log.Write("assoc Запись словаря ассоциаций в файл начата");
@@ -112,6 +145,20 @@ namespace Solver
             }
             System.IO.File.WriteAllLines(DictionaryPath, ar);
             Log.Write("assoc Запись словаря ассоциаций в файл завершена");
+        }
+
+        // обновление словаря плохих ассоциаций на диске
+        public static void SaveDictionaryBad()
+        {
+            Log.Write("assoc Запись словаря плохих ассоциаций в файл начата");
+            if (isObjectReady == false) { return; }
+            string[] ar = new string[badwords.Count];
+            for (int i = 0; i < badwords.Count; i++)
+            {
+                ar[i] = badwords[i];
+            }
+            System.IO.File.WriteAllLines(DictionaryBadPath, ar);
+            Log.Write("assoc Запись словаря плохих ассоциаций в файл завершена");
         }
 
         // вход - слово
@@ -203,6 +250,13 @@ namespace Solver
             assoc.Add(lst);
         }
 
+        // вход - слово
+        private static void AddDictionaryBad(string wrd)
+        {
+            Log.Write("assoc добавление в словарь новых плохих ассоциаций для '" + wrd + "'");
+            badwords.Add(wrd);
+        }
+
         // выбирает из списка первых count значений
         private static List<string> GetFirstItems(List<string> list, int count)
         {
@@ -261,6 +315,7 @@ namespace Solver
                 List<string> t1 = Get(str, count);
                 result.AddRange(t1);
             }
+            /*
             // надо убрать дупы
             bool flag = true;
             while (flag)
@@ -277,7 +332,7 @@ namespace Solver
                         break;
                     }
                 }
-            }
+            }*/
             return result;
         }
 
@@ -298,10 +353,17 @@ namespace Solver
             {
                 return Associations.GetFirstItems(assoc[idxwrd], count);
             }
+            // поиск в плохих ассоциациях
+            int idxwrd2 = badwords.IndexOf(word);
+            if (idxwrd2 >= 0)
+            {
+                return result;
+            }
             // если не нашли - поиск на внешнем сервисе
             string page = GetPageSociation(word);
             if (page.Length < 1)
             {
+                AddDictionaryBad(word);
                 return result;
             }
             result = ParsePage(page);

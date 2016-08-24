@@ -823,7 +823,7 @@ namespace Solver
             SpellChecker.LoadDictionary(localpath + "SpChDict.dat");
             Associations.Init();
             Associations.LoadDictionary(localpath + "AssocDict.dat");
-
+            Associations.LoadDictionaryBad(localpath + "AssocDictBad.dat");
         }
 
         // завершаем работы наших объектов
@@ -831,6 +831,7 @@ namespace Solver
         {
             SpellChecker.SaveDictionary();
             Associations.SaveDictionary();
+            Associations.SaveDictionaryBad();
         }
 
         // код основной программы
@@ -845,7 +846,8 @@ namespace Solver
             Log.Write("      " + System.Environment.OSVersion.VersionString + ", " + Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") + ", ver:" + Environment.Version.ToString() + ", CPU: " + Environment.ProcessorCount.ToString() + ", 64bit:" + Environment.Is64BitOperatingSystem.ToString());
 
             // выполняем проверки окружения
-            if (!CheckComponents()) {
+            if (!CheckComponents())
+            {
                 MessageBox.Show("Не все необхдимые компоненты установлены на ПК.\r\nПроверьте лог-файл.");
                 return;
             }
@@ -855,8 +857,9 @@ namespace Solver
 
 
             // ***
-            //var tt = Google.UploadFile_pixicru(@"C:\1\34\pics\g24889_l2_p1_n4.jpg");
+            //var tt = Google.UploadFile_pixicru(@"C:\1\34\pics\g24889_l2_p1_n1.jpg");
             var tt = Google.GetImageDescription(@"C:\1\34\pics\g24889_l2_p1_n4.jpg");
+            tt.FindAssociations();
             tt = tt;
             // ***
 

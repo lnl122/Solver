@@ -43,6 +43,7 @@ namespace Solver
         public List<string> f_b_verb;      // глагол
         public List<string> f_b_others;    // прочие
         public List<string> all_base;  // все слова из найденных, приведенную в базовую форму, ранжированные по частоте
+        public List<string> all_base10;  // топовых 10 слов, из найденных, приведенную в базовую форму, ранжированные по частоте
         public List<string> all_assoc; // ассоциации к найденным словам, все подряд
 
         public Words(string str)
@@ -55,6 +56,7 @@ namespace Solver
             en_trans = new List<string>();
             all_find = new List<string>();
             all_base = new List<string>();
+            all_base10 = new List<string>();
             all_assoc = new List<string>();
             f_b_noun = new List<string>();
             f_b_adjective = new List<string>();
@@ -118,18 +120,28 @@ namespace Solver
             f_b_others = temp1[3];
             // выберем в базовые только существительные. *** возможно позже будет нужно и прилагательные - надо замерить эффеткивность
             all_base = KillDupesAndRange(f_b_noun);
+            all_base10 = KillDupesAndRange(f_b_noun, 10);
 
             // найдем ассоциации ко всем базовым словам, уберем дупы
-            all_assoc = KillDupesAndRange(Associations.Get(all_base));
+            //all_assoc = KillDupesAndRange(Associations.Get(all_base));//вынесено  ниже в отдельный метод
 
             // объект создан, все счастливо танцую и поют, как в индийских фильмах
+        }
+
+        // для объекта находит ассоциации, если они необходимы пользователю. с внешнего сервиса - 10 минут/0% проца, локально - 2 мин/одно ядро
+        public void FindAssociations()
+        {
+            var ss = Associations.Get(all_base);
+            all_assoc = KillDupesAndRange(ss);
         }
 
         // убиваем дупы и ранжирум по частоте
         // вход - список слов
         // выход - базовые слова
-        private static List<string> KillDupesAndRange(List<string> lst)
+        private static List<string> KillDupesAndRange(List<string> lst, int cnt = 99999)
         {
+            int mm = 0;
+            if(cnt != 99999) { mm = 1; }
             List<string> res = new List<string>();
             if (lst.Count == 0)
             {
@@ -159,7 +171,7 @@ namespace Solver
                 }
             }
             int l = lst2.Count;
-            for(int i=m; i>0; i--)
+            for(int i=m; i>mm; i--)
             {
                 for(int j=0; j<l; j++)
                 {
@@ -167,6 +179,10 @@ namespace Solver
                     {
                         res.Add(lst2[j]);
                     }
+                }
+                if (res.Count >= cnt)
+                {
+                    break;
                 }
             }
             return res;
