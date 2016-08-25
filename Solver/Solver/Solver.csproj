@@ -71,6 +71,7 @@
     <Compile Include="Gybrid.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Logogrif.cs" />
+    <Compile Include="MainForm.cs" />
     <Compile Include="Metagramm.cs" />
     <Compile Include="Picture.cs" />
     <Compile Include="Program.cs" />

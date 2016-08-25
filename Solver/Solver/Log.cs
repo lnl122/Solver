@@ -45,9 +45,11 @@ namespace Solver
         {
             if (isReady)
             {
+                var dt = DateTime.Today;
+                var dn = DateTime.Now;
                 string path = PathToPages + "\\" + modulename + "_" + fileidx.ToString() + "_" +
-                    DateTime.Today.Year.ToString() + DateTime.Today.Month.ToString() + DateTime.Today.Day.ToString() +
-                    DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString() + DateTime.Now.Second.ToString() + ".http";
+                    dt.Year.ToString() + dt.Month.ToString() + dt.Day.ToString() +
+                    dn.Hour.ToString() + dn.Minute.ToString() + dn.Second.ToString() + ".http";
                 System.IO.File.WriteAllText(path, text, System.Text.Encoding.UTF8);
                 fileidx++;
             }

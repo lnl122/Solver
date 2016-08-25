@@ -107,21 +107,21 @@ namespace Solver
         }
         private void Event_GapoifikaBooks_ChangeSize(object sender, EventArgs e)
         {
-            Data.BtnSolve.Top = Program.mainform_border;
-            Data.BtnSolve.Left = Program.mainform_border;
-            Data.BtnSolve.Width = 20 * Program.mainform_border;
-            Data.BtnSolve.Height = 5 * Program.mainform_border;
-            Data.Auto.Top = Program.mainform_border;
-            Data.Auto.Left = Data.BtnSolve.Right + 2 * Program.mainform_border;
-            Data.BtnClose.Top = Program.mainform_border;
-            Data.BtnClose.Width = 20 * Program.mainform_border;
-            Data.BtnClose.Height = 5 * Program.mainform_border;
-            Data.BtnClose.Left = Program.GameTab.MainTab.Width - Data.BtnClose.Width - Program.mainform_border;
+            Data.BtnSolve.Top = Program.border;
+            Data.BtnSolve.Left = Program.border;
+            Data.BtnSolve.Width = 20 * Program.border;
+            Data.BtnSolve.Height = 5 * Program.border;
+            Data.Auto.Top = Program.border;
+            Data.Auto.Left = Data.BtnSolve.Right + 2 * Program.border;
+            Data.BtnClose.Top = Program.border;
+            Data.BtnClose.Width = 20 * Program.border;
+            Data.BtnClose.Height = 5 * Program.border;
+            Data.BtnClose.Left = Program.MainTab.Width - Data.BtnClose.Width - Program.border;
             Data.TextIn.Left = Data.BtnSolve.Left;
-            Data.TextIn.Width = (Program.GameTab.MainTab.Width - 3 * Program.mainform_border)/2;
-            Data.TextIn.Top = Data.BtnSolve.Bottom + 2 * Program.mainform_border;
-            Data.TextIn.Height = Program.GameTab.MainTab.Height - Data.TextIn.Top - Program.mainform_border;
-            Data.TextOut.Left = Data.TextIn.Right + Program.mainform_border;
+            Data.TextIn.Width = (Program.MainTab.Width - 3 * Program.border)/2;
+            Data.TextIn.Top = Data.BtnSolve.Bottom + 2 * Program.border;
+            Data.TextIn.Height = Program.MainTab.Height - Data.TextIn.Top - Program.border;
+            Data.TextOut.Left = Data.TextIn.Right + Program.border;
             Data.TextOut.Width = Data.TextIn.Width;
             Data.TextOut.Top = Data.TextIn.Top;
             Data.TextOut.Height = Data.TextIn.Height;
