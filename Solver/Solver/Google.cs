@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Solver
 {
     // public static Words GetImageDescription(string filepath)
-    // public static string ParsingGooglePage(string g)
+    // public static string ParsingPage(string g)
     // public static string GetPageByImageUrl(string imgurl)
     //
     class Google
@@ -88,12 +88,13 @@ namespace Solver
         // парсим текст страницы
         // вход - страница
         // выход - текст со страницы после парсинга
-        public static string ParsingGooglePage(string g)
+        public static string ParsingPage(string g)
         {
             if (g.Length < 1)
             {
                 return "";
             }
+
             int ihr1 = g.IndexOf("<hr");
             int ihr2 = g.LastIndexOf("<hr");
             if ((ihr1 < 0) || (ihr2 < 0))
@@ -101,6 +102,7 @@ namespace Solver
                 return "";
             }
             g = g.Substring(ihr1, ihr2 - ihr1);
+
             int tags_len = tags.Length / 2;
             bool fl = true;
             for (int i = 0; i < tags_len; i++)
@@ -144,6 +146,7 @@ namespace Solver
                     }
                 }
             }
+
             g = g.Replace("<a>&times;</a>", "");
             fl = true;
             while (fl)
@@ -179,6 +182,7 @@ namespace Solver
             g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("<div e>", " ").Replace("  ", " ").Replace("  ", " ");
             g = g.Replace(";", " ").Replace("+", " ").Replace("\"", " ").Replace("—", " ").Replace("|", " ").Replace(".", " ").Replace("%", " ").Replace("*", " ").Replace("/", " ").Replace(",", " ").Replace("!", " ").Replace("?", " ").Replace(":", " ").Replace("-", " ").Replace("(", " ").Replace(")", " ");
             g = g.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
+
             return g;
         }
 
@@ -190,7 +194,7 @@ namespace Solver
             if (a == "") { return null; }
             string b = GetPageByImageUrl(a);
             if (b == "") { return null; }
-            string c = ParsingGooglePage(b);
+            string c = ParsingPage(b);
             if (c == "") { return null; }
             Words res = new Words(c);
             return res;

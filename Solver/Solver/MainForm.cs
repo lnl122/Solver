@@ -13,9 +13,10 @@ namespace Solver
 {
     class MainForm
     {
-        public Form MF;// форму объявим глобально
-        public TabControl Tabs;
+        public Form MF;         // форму объявим глобально
+        public TabControl Tabs; // глобальный Таб - тоже
 
+        // элементы формы
         private static TabPage MainTab;
         private static Button BtnUser;
         private static Button BtnGame;
@@ -23,24 +24,32 @@ namespace Solver
         private static ListBox LvlList;
         private static TextBox LvlText;
         private static ComboBox gChoice;
+        public static TextBox tbGname;
 
-        private static string mainform_caption = "Solver..";     // имя формы
-        public static int border = 5;      // расстояния между элементами форм, константа
+        private static string mainform_caption = "Solver..";    // имя формы
+        public static int border = 5;                           // расстояния между элементами форм, константа
 
-        private static string username;
-        private static string password;
-        private static string userid;
-        private static string game_cHead;
-        private static CookieContainer game_cCont;
+        private static string username;             // логин пользователя
+        private static string password;             // пасс пользвоателя
+        private static string userid;               // ид пользователя
+
+        private static string[] g_names;
+        private static string[] g_urls;
+
+        private static string game_domain;          // домен игры
+        private static string game_id;              // ид игры
+        private static int game_levels;             // количество уровней
+
+                                                    //private static string game_cHead;           // куки
+                                                    //private static CookieContainer game_cCont;  // куки
 
 
-        /*public static void Event_SelectGameFromList(object sender, EventArgs e)
+        public static void Event_SelectGameFromList(object sender, EventArgs e)
         {
             ListBox l4 = (ListBox)sender;
-            dGame.tb.Text = dGame.g_urls[l4.SelectedIndex];
-            //Form f1 = l4.Parent;
-            //f1.Close();
-        }*/
+            tbGname.Text = g_urls[l4.SelectedIndex];
+        }
+
         /*public static void Event_LevelSelected(object sender, EventArgs e)
 {
     if (LvlList.Items.Count != 1) {
@@ -50,65 +59,9 @@ namespace Solver
 }*/
 
 
-/*        public static void Event_BtnGameClick(object sender, EventArgs e)
+        public static void Event_BtnGameClick(object sender, EventArgs e)
         {
-            string url1 = "http://game.en.cx/UserDetails.aspx?zone=1&tab=1&uid=" + userid + "&page=1";
-            string cookieHeader = "";
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url1);
-            req.CookieContainer = game_cCont;
-            req.ContentType = "application/x-www-form-urlencoded";
-            try
-            {
-                HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
-                cookieHeader = resp.Headers["Set-cookie"];
-                game_cHead = cookieHeader;
-            }
-            catch
-            {
-                Log.Write("game  ERROR: не удалось получить перечень игр");
-            }
-
-
-            string pageSource = "";
-            using (StreamReader sr = new StreamReader(resp.GetResponseStream())) { pageSource = sr.ReadToEnd(); }
-            string ps1 = parse_html_body(pageSource);
-            ps1 = ps1.Substring(ps1.IndexOf("Послужной список"));
-            ps1 = ps1.Substring(ps1.IndexOf("Игры"));
-            ps1 = ps1.Substring(ps1.IndexOf("Мозговой штурм"));
-            string[] ar1 = System.Text.RegularExpressions.Regex.Split(ps1.Replace(" bg>", "").Replace("\r\n", " ").Replace("</tr> ", "").Replace("</td> ", ""), "<tr");
-            System.Collections.Generic.List<string> l1 = new System.Collections.Generic.List<string>();
-            System.Collections.Generic.List<string> l2 = new System.Collections.Generic.List<string>();
-            foreach (string s1 in ar1) { if (s1.IndexOf("/Teams/TeamDetails.aspx") != -1) { l1.Add(s1.Replace("> ", ">").Replace(" <", "<")); } }
-            foreach (string s2 in l1)
-            {
-                string r_url = "";
-                string r_name = "";
-                string r_num = "";
-                bool r_flag = true;
-                string[] ar2 = System.Text.RegularExpressions.Regex.Split(s2,"<td>");
-                for (int i = 0; i < ar2.Length; i++)
-                {
-                    if (ar2[i].Length < 5) { continue; }
-                    if (ar2[i].Substring(ar2[i].Length - 5, 5) == "Место") { r_flag = false; break; }
-                    if (ar2[i][0] == '#') { r_num = ar2[i]; }
-                    if (ar2[i].IndexOf("<a href=\"") != -1)
-                    {
-                        string q1 = ar2[4].Substring(0, ar2[4].IndexOf("</a>")).Replace("<a href=\"", "");
-                        r_url = q1.Substring(0, q1.IndexOf("\">"));
-                        r_name = q1.Substring(q1.IndexOf("\">") + 2);
-                    }
-                }
-                if (r_flag) { l2.Add(r_url+"|"+r_num+" | "+r_name); }
-            }
-            // l2 - list of games
-            dGame.g_names = new string[l2.Count];
-            dGame.g_urls = new string[l2.Count];
-            for(int i=0; i< l2.Count; i++)
-            {
-                int ii2 = l2[i].IndexOf("|");
-                dGame.g_urls[i] = l2[i].Substring(0,ii2);
-                dGame.g_names[i] = l2[i].Substring(ii2+1);
-            }
+            List<List<string>> l2 = Engine.GetGames(userid);
 
             // форма для ввода данных
             Form SelectGame = new Form();
@@ -130,65 +83,77 @@ namespace Solver
             lb.Left = border;
             lb.Width = la.Width;
             lb.Height = 20 * border;
-            for (int i = 0; i < dGame.g_names.Length; i++) { lb.Items.Add(dGame.g_names[i]); }
+
+            g_urls = new string[l2.Count];
+            g_names = new string[l2.Count];
+            for (int i=0; i<l2.Count; i++)
+            {
+                List<string> l3 = l2[i];
+                g_names[i] = l3[1] + " | " + l3[2];
+                g_urls[i] = l3[0];
+                lb.Items.Add(g_names[i]);
+            }
             lb.DoubleClick += new EventHandler(Event_SelectGameFromList);
             SelectGame.Controls.Add(lb);
-            dGame.tb = new TextBox();
-            dGame.tb.Text = "";
-            if (Env.system_name == "NBIT01") { dGame.tb.Text="http://demo.en.cx/gameengines/encounter/play/24889"; } // for TEST
-            dGame.tb.Top = lb.Bottom + 2 * border;
-            dGame.tb.Left = border;
-            dGame.tb.Width = lb.Width - 24 * border;
-            SelectGame.Controls.Add(dGame.tb);
+            tbGname = new TextBox();
+            tbGname.Text = "";
+            if (Environment.MachineName == "NBIT01") { tbGname.Text="http://demo.en.cx/gameengines/encounter/play/24889"; } // for TEST
+            tbGname.Top = lb.Bottom + 2 * border;
+            tbGname.Left = border;
+            tbGname.Width = lb.Width - 24 * border;
+            SelectGame.Controls.Add(tbGname);
             Button blok = new Button();
             blok.Text = "Открыть игру";
-            blok.Top = dGame.tb.Top;
-            blok.Left = dGame.tb.Right + 2 * border;
+            blok.Top = tbGname.Top;
+            blok.Left = tbGname.Right + 2 * border;
             blok.Width = 22 * border;
             blok.DialogResult = DialogResult.OK;
             SelectGame.AcceptButton = blok;
             SelectGame.Controls.Add(blok);
 
-            // предложим ввести юзера и пароль, дефолтные значения - то, что было в реестре, или же пусто
+            // выберем игру
             string page = "";
             bool fl = true;
             while (fl)
             {
                 if (SelectGame.ShowDialog() == DialogResult.OK)
                 {
-                    string url = dGame.tb.Text;
+                    string url = tbGname.Text;
                     // попробуем авторизоваться в игре - сначала разберем полученную строку
                     if (url == "") { MessageBox.Show("Не выбрана игра вообще.."); continue; }
                     string url2 = url;
                     if (url2.Substring(0,7) != "http://") { MessageBox.Show("Указана не ссылка.."); continue; }
                     url2 = url.Replace("http://", "");
                     int ii1 = url2.IndexOf("/"); if (ii1 == -1) { MessageBox.Show("указан только хост.."); continue; }
-                    dGame.game_domain = url2.Substring(0,ii1);
+                    game_domain = url2.Substring(0,ii1);
                     url2 = url2.Substring(ii1+1);
                     if(url2.IndexOf("gameengines/encounter/play/") != -1)
                     {
                         ii1 = url2.IndexOf("/?level="); if (ii1 != -1) { url2 = url2.Substring(0, ii1); }
-                        dGame.game_id = url2.Substring(url2.LastIndexOf("/") + 1);
+                        game_id = url2.Substring(url2.LastIndexOf("/") + 1);
                     } else
                     {
-                        if (url2.IndexOf("GameDetails.aspx?gid=") != -1) { dGame.game_id = url2.Substring(url2.LastIndexOf("=") + 1); }
+                        if (url2.IndexOf("GameDetails.aspx?gid=") != -1) { game_id = url2.Substring(url2.LastIndexOf("=") + 1); }
                         else { MessageBox.Show("Ссылку на игру не удалось понять.."); continue; } // ни один из форматов ссылок не подошел
                     }
                     //MessageBox.Show(url + "\r\n" + dGame.game_domain + "\r\n" + dGame.game_id);
                     // если авторизовались успешно - запоминаем игру
-                    string ps2 = Game_Logon("http://" + dGame.game_domain + "/Login.aspx", dGame.username, dGame.password);
+                    string ps2 = Engine.Logon("http://" + game_domain + "/Login.aspx", username, password);
                     if (ps2.IndexOf("action=logout") != -1)
                     {
                         // прочесть игру и узнать её параметры
-                        string ps3 = get_game_page("http://" + dGame.game_domain + "/GameDetails.aspx?gid=" + dGame.game_id);
-                        string ps4 = parse_html_body(ps3).ToLower().Replace("\r\n","");
-                        int fr = ps4.IndexOf("<td>игра:мозговой штурм</td>");
-                        int fe = ps4.IndexOf("<td>covering zone:brainstorm");
+                        string ps3 = Engine.get_game_page("http://" + game_domain + "/GameDetails.aspx?gid=" + game_id);
+                        string ps4 = Engine.ParsingPageListGames(ps3).ToLower().Replace("\r\n","");
+                        ps4 = ps4.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
+                        ps4 = ps4.Replace(" >", ">").Replace(" <", "<").Replace("< ", "<").Replace("> ", ">");
+                        string ps5 = ps4.Replace("<span>", "").Replace("</span>", "");
+                        int fr = ps5.IndexOf("игра:мозговой штурм");
+                        int fe = ps5.IndexOf("covering zone:brainstorm");
                         if (fr + fe < 0) { MessageBox.Show("Это не МШ.."); continue; }
-                        fr = ps4.IndexOf("<td>последовательность прохождения:штурмовая</td>");
-                        fe = ps4.IndexOf("<td>the levels passing sequence:storm</td>");
+                        fr = ps5.IndexOf("<td>последовательность прохождения:штурмовая</td>");
+                        fe = ps5.IndexOf("<td>the levels passing sequence:storm</td>");
                         if (fr + fe < 0) { MessageBox.Show("Последовательность не штурмовая.."); continue; }
-                        page = get_game_page("http://" + dGame.game_domain + "/gameengines/encounter/play/" + dGame.game_id);
+                        page = Engine.get_game_page("http://" + game_domain + "/gameengines/encounter/play/" + game_id);
                         if (page.IndexOf("class=\"gameCongratulation\"") != -1) { MessageBox.Show("Эта игра уже закончилась.."); continue; }
                         if (page.IndexOf("<span id=\"animate\">Поздравляем!!!</span>") != -1) { MessageBox.Show("Эта игра уже закончилась.."); continue; }
                         if (page.IndexOf("Капитан команды не включил вас в состав для участия в этой игре.") != -1) { MessageBox.Show("Капитан команды не включил вас в состав для участия в этой игре.."); continue; }
@@ -206,23 +171,24 @@ namespace Solver
                         i2 = q_lvl.LastIndexOf("<i>");
                         q_lvl = q_lvl.Substring(i2 + 3);
                         q_lvl = q_lvl.Substring(0, q_lvl.IndexOf("</i>"));
-                        if (Int32.TryParse(q_lvl, out i2)) { dGame.game_levels = i2; }
-                        if (dGame.game_levels == 0) { MessageBox.Show("Не удалось определить количество уровней.."); continue; }
+                        if (Int32.TryParse(q_lvl, out i2)) { game_levels = i2; }
+                        if (game_levels == 0) { MessageBox.Show("Не удалось определить количество уровней.."); continue; }
                         // поставим флаг выхода и заблокируем кнопку на будущее.
                         fl = false;
                         BtnGame.Enabled = false;
                         // в лог
-                        Log("Открыта игра " + dGame.game_id);
-                        string temppath = Env.local_path + "\\pics"; if (!Directory.Exists(temppath)) { Directory.CreateDirectory(temppath); }
-                        //temppath = temppath + "\\" + dGame.game_id;  if (!Directory.Exists(temppath)) { Directory.CreateDirectory(temppath); }
-                        //for (int i8 = 0; i8 <= dGame.game_levels; i8++) { if (!Directory.Exists(temppath+"\\"+i8.ToString())) { Directory.CreateDirectory(temppath + "\\" + i8.ToString()); } }
-                        Env.temp_path = temppath;
+                        Log.Write("en.cx Открыта игра " + game_id);
+                        string temppath = Environment.CurrentDirectory + "\\pics";
+                        if (!Directory.Exists(temppath))
+                        {
+                            Directory.CreateDirectory(temppath);
+                        }
                     }
                     else
                     {
                         // если не успешно - вернемся в вводу пользователя
-                        Log("ERROR Не удалось подключиться к "+ dGame.game_domain);
-                        MessageBox.Show("Не удалось подключиться к " + dGame.game_domain);
+                        Log.Write("en.cx ERROR: Не удалось подключиться к " + game_domain);
+                        MessageBox.Show("Не удалось подключиться к " + game_domain);
                     }
                 }
                 else
@@ -232,6 +198,16 @@ namespace Solver
                 }
             } // выход только если fl = false -- это или отказ польователя в диалоге, или если нажато ОК - проверка пройдена
             // смотрим на page - если не пусто - то подключились
+            if (page != "")
+            {
+                Engine.SetId(userid, username, password, game_id, game_domain, game_levels);
+                Engine.GetLevels();
+                foreach(Engine.level lev in Engine.L)
+                {
+                    LvlList.Items.Add(lev.name);
+                }
+            }
+            /*
             if(page != "")
             {
                 dGame.level_name = new string[dGame.game_levels+1];
@@ -273,9 +249,9 @@ namespace Solver
                     }
                     dGame.level_text[i] = t1;
                 }
-            }
+            }*/
         }
-        */
+
 
 
         // создаём основную форму приложения
@@ -299,7 +275,7 @@ namespace Solver
             BtnGame = new Button();
             BtnGame.Text = "Выбор игры";
             BtnGame.Enabled = false;
-            //BtnGame.Click += new EventHandler(Event_BtnGameClick);
+            BtnGame.Click += new EventHandler(Event_BtnGameClick);
             MainTab.Controls.Add(BtnGame);
             LvlList = new ListBox();
             LvlList.Items.Add("0: текст уровня пользователя");
@@ -325,36 +301,6 @@ namespace Solver
             Event_MainFormChangeSize(null, null);
         }
 
-        // выполняем логон в движке
-        // вход - урл, логин, пасс
-        // выход - страница с ответом
-        public string GameLogon(string url1, string name, string pass)
-        {
-            string formParams = string.Format("Login={0}&Password={1}", name, pass);
-            string cookieHeader = "";
-            var cookies = new CookieContainer();
-            game_cCont = cookies;
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url1);
-            req.CookieContainer = cookies;
-            req.ContentType = "application/x-www-form-urlencoded";
-            req.Method = "POST";
-            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(formParams);
-            req.ContentLength = bytes.Length;
-            using (Stream os = req.GetRequestStream()) { os.Write(bytes, 0, bytes.Length); }
-            string pageSource = "";
-            try
-            {
-                HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
-                cookieHeader = resp.Headers["Set-cookie"];
-                game_cHead = cookieHeader;
-                using (StreamReader sr = new StreamReader(resp.GetResponseStream())) { pageSource = sr.ReadToEnd(); }
-            }
-            catch
-            {
-                Log.Write("game  ERROR: не удалось получить ответ на авторизацию", url1 + " " + name + " " + pass);
-            }
-            return pageSource;
-        }
 
         // ивент на кнопку логона
         // логин и пасс сохраняем в реестре
@@ -428,7 +374,7 @@ namespace Solver
                     user = tu.Text;
                     pass = tp.Text;
                     Log.Write("Пробуем выполнить вход на сайт для пользвоателя " + user);
-                    string pageSource = GameLogon("http://game.en.cx/Login.aspx", user, pass);
+                    string pageSource = Engine.Logon("http://game.en.cx/Login.aspx", user, pass);
                     // если авторизовались успешно - записываем данные в реестр, меняем заголовок программы, делаем доступной кнорпку выбора игры
                     if (pageSource.IndexOf("action=logout") != -1)
                     {
