@@ -43,22 +43,24 @@ namespace Solver
                                                     //private static string game_cHead;           // куки
                                                     //private static CookieContainer game_cCont;  // куки
 
-
+        // ивент - по кнопке выбора игры
         public static void Event_SelectGameFromList(object sender, EventArgs e)
         {
             ListBox l4 = (ListBox)sender;
             tbGname.Text = g_urls[l4.SelectedIndex];
         }
-
-        /*public static void Event_LevelSelected(object sender, EventArgs e)
-{
-    if (LvlList.Items.Count != 1) {
-        int newlvl = LvlList.SelectedIndex;
-        LvlText.Text = dGame.level_text[newlvl];
-    }
-}*/
-
-
+        // ивент - при выборе уровня
+        public static void Event_LevelSelected(object sender, EventArgs e)
+        {
+            if (LvlList.Items.Count != 1) {
+                int newlvl = LvlList.SelectedIndex;
+                string tt = "";
+                foreach (string s1 in Engine.L[newlvl].ursl) { tt = tt + s1 + "\r\n"; }
+                if (tt != "") { tt = tt + "__________________________________________\r\n"; }
+                LvlText.Text = tt + Engine.L[newlvl].text;
+            }
+        }
+        // ивент - при выборе игры
         public static void Event_BtnGameClick(object sender, EventArgs e)
         {
             List<List<string>> l2 = Engine.GetGames(userid);
@@ -202,57 +204,23 @@ namespace Solver
             {
                 Engine.SetId(userid, username, password, game_id, game_domain, game_levels);
                 Engine.GetLevels();
+                LvlList.Items.Clear();
                 foreach(Engine.level lev in Engine.L)
                 {
-                    LvlList.Items.Add(lev.name);
+                    LvlList.Items.Add(lev.number + ": " + lev.name);
                 }
             }
-            /*
-            if(page != "")
+            LvlList.SelectedIndex = 0;
+            if (LvlList.Items.Count > 1)
             {
-                dGame.level_name = new string[dGame.game_levels+1];
-                dGame.level_text = new string[dGame.game_levels+1];
-                dGame.level_full = new string[dGame.game_levels+1];
-                //dGame.level_pics = new string[dGame.game_levels+1];
-                string url_base = "http://" + dGame.game_domain + "/gameengines/encounter/play/" + dGame.game_id + "/?level=";
-                for (int i = 1; i <= dGame.game_levels; i++)
-                {
-                    string t1 = get_game_page(url_base + i.ToString());
-                    dGame.level_full[i] = t1;
-                    string t2 = t1.Substring(t1.IndexOf("<li class=\"level-active\">"));
-                    t2 = t2.Substring(t2.IndexOf("<span>") + 6);
-                    t2 = t2.Substring(0, t2.IndexOf("</span>"));
-                    t2 = i.ToString() + " : " + t2;
-                    dGame.level_name[i] = t2;
-                    LvlList.Items.Add(t2);
-
-                    t1 = parse_level_text(t1);
-                    string pics = "";
-                    fl = true;
-                    while (fl)
-                    {
-                        fl = false;
-                        int ii1 = t1.IndexOf("<img");
-                        if (ii1 != -1)
-                        {
-                            fl = true;
-                            string t5 = t1.Substring(ii1);
-                            int ii2 = t5.IndexOf(">");
-                            string p1 = t5.Substring(0, ii2 + 1);
-                            int jj1 = p1.IndexOf("src=\"");
-                            p1 = p1.Substring(jj1 + 5);
-                            jj1 = p1.IndexOf("\"");
-                            p1 = p1.Substring(0, jj1);
-                            pics = pics + p1 + "\r\n";
-                            t1 = t1.Substring(0, ii1) + "\r\n\r\nImage:\r\n" + p1 + "\r\n" + t5.Substring(ii2 + 1);
-                        }
-                    }
-                    dGame.level_text[i] = t1;
-                }
-            }*/
+                LvlList.SelectedIndex = 1;
+                string tt = "";
+                foreach(string s1 in Engine.L[1].ursl) { tt = tt + s1 + "\r\n"; }
+                if (tt != "") { tt = tt + "__________________________________________\r\n"; }
+                LvlText.Text = tt + Engine.L[1].text;
+            }
+            //*** выбрать первый уровень игры и отобразить текст уровня
         }
-
-
 
         // создаём основную форму приложения
         public MainForm()
@@ -279,7 +247,7 @@ namespace Solver
             MainTab.Controls.Add(BtnGame);
             LvlList = new ListBox();
             LvlList.Items.Add("0: текст уровня пользователя");
-            //LvlList.Click += new EventHandler(Event_LevelSelected);
+            LvlList.Click += new EventHandler(Event_LevelSelected);
             MainTab.Controls.Add(LvlList);
             LvlText = new TextBox();
             LvlText.Text = "Для пользовательского уровня укажите текст задания, или ссылки на картинки\r\n\r\nДля выбора задания игры необходимо выбрать уровень в списке слева\r\n\r\nhttp://d2.endata.cx/data/games/24889/test_pic_1_16.jpg\r\n";
@@ -290,8 +258,8 @@ namespace Solver
             MainTab.Controls.Add(LvlText);
 
             gChoice = new ComboBox();
-            //for (int i = 0; i < (actions.Length / 2); i++) { gChoice.Items.Add(actions[i, 0]); }
-            //gChoice.SelectedIndex = 0;
+            for (int i = 0; i < (actions.Length / 2); i++) { gChoice.Items.Add(actions[i, 0]); }
+            gChoice.SelectedIndex = 0;
             MainTab.Controls.Add(gChoice);
             BtnSolve = new Button();
             BtnSolve.Text = "Запустить решалку";
@@ -301,6 +269,26 @@ namespace Solver
             Event_MainFormChangeSize(null, null);
         }
 
+        
+                public static string[,] actions = {
+                    //{ "Решать самостоятельно",      "manual" },
+                    //{ "Расчленёнки",                    "raschl" },
+                    { "Олимпийки картинками (img+ass)", "img_assoc"},
+                    { "Картинки - только решить",       "image"},
+                    { "Ассоциации для олимпиек",        "assoc"}
+                    //{ "* Картинки + ассоциации *",      "picture_association"},
+                    //{ "Картинки + логогрифы СОН-СЛОН",  "logogrif"},
+                    //{ "Картинки + метаграммы КОТ-КИТ",  "metagramm"},
+                    //{ "Картинки + гибриды карТОНус",    "gybrid"},
+                    //{ "* Кубрая *",                     "kubray"},
+                    //{ "Гапоифика - названия книг",      "gapoifika_books"}
+
+                    };
+        
+        public static void NewAssoc()
+        {
+
+        }
 
         // ивент на кнопку логона
         // логин и пасс сохраняем в реестре

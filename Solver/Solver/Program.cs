@@ -3,6 +3,7 @@
 // *** добавить несколько сервисов аплоада картинок 5-6 штук. при отказе работать к-либо - переходить на следующий
 // *** в Word. сделать подборку 1) первых 10 существительных наиболее частых. 2) 3-5 групп слов в порядке приоритетности (топ 10 сущ/все сущ+найденные/ассоциации), готовых для использования
 // *** из всех модулей вынести констатны и текстовые константы в статические переменные каждого модуля
+// *** если в Ворд приходит более 1000 слов - сделать несколько потоков
 
 using System;
 using System.Diagnostics;
@@ -110,7 +111,7 @@ namespace Solver
             string re1 = "";
             try { re1 = wc1.DownloadString("http://image.google.com/"); }   catch { Log.Write("check ERROR: http://image.google.com/ не открывается");  return false; }
             try { re1 = wc1.DownloadString("http://game.en.cx/"); }         catch { Log.Write("check ERROR: http://game.en.cx/ не открывается");        return false; }
-            try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log.Write("check ERROR: http://jpegshare.net/ не открывается");     return false; }
+            //try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log.Write("check ERROR: http://jpegshare.net/ не открывается");     return false; }
             //try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log.Write("check ERROR: http://ipic.su/ не открывается");           return false; }
             try { re1 = wc1.DownloadString("http://goldlit.ru/"); }         catch { Log.Write("check ERROR: http://goldlit.ru/ не открывается");        return false; }
             try { re1 = wc1.DownloadString("http://sociation.org/"); }      catch { Log.Write("check ERROR: http://sociation.org/ не открывается");     return false; }
@@ -121,19 +122,7 @@ namespace Solver
             return true;
         }
 
-        /*public static string[,] actions = {
-            //{ "Решать самостоятельно",      "manual" },
-            { "Расчленёнки",                    "raschl" },
-            { "Картинки - только решить",       "picture"},
-            { "* Картинки + ассоциации *",      "picture_association"},
-            { "Картинки + логогрифы СОН-СЛОН",  "logogrif"},
-            { "Картинки + метаграммы КОТ-КИТ",  "metagramm"},
-            { "Картинки + гибриды карТОНус",    "gybrid"},
-            { "* Кубрая *",                     "kubray"},
-            { "Гапоифика - названия книг",      "gapoifika_books"}
 
-            };
-*/
 
         /*public struct GameSt
         {
