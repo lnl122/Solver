@@ -104,26 +104,26 @@ namespace Solver
         }
         public static void Event_Raschl_ChangeSize(object sender, EventArgs e)
         {
-            Data.BtnSolve.Top = Program.border;
-            Data.BtnSolve.Left = Program.border;
-            Data.BtnSolve.Width = 20 * Program.border;
-            Data.BtnSolve.Height = 5 * Program.border;
-            Data.Auto.Top = Program.border;
-            Data.Auto.Left = Data.BtnSolve.Right + 2 * Program.border;
-            Data.WrdLen.Top = Program.border;
-            Data.WrdLen.Left = Data.Auto.Right + 2 * Program.border;
+            Data.BtnSolve.Top = MainForm.border;
+            Data.BtnSolve.Left = MainForm.border;
+            Data.BtnSolve.Width = 20 * MainForm.border;
+            Data.BtnSolve.Height = 5 * MainForm.border;
+            Data.Auto.Top = MainForm.border;
+            Data.Auto.Left = Data.BtnSolve.Right + 2 * MainForm.border;
+            Data.WrdLen.Top = MainForm.border;
+            Data.WrdLen.Left = Data.Auto.Right + 2 * MainForm.border;
             Data.WrdLen.Height = Data.BtnSolve.Height;
-            Data.WrdLen.Width = 20 * Program.border;
-            Data.BtnClose.Top = Program.border;
-            Data.BtnClose.Width = 20 * Program.border;
-            Data.BtnClose.Height = 5 * Program.border;
-            Data.BtnClose.Left = Program.MainTab.Width - Data.BtnClose.Width - Program.border;
-            Data.TextIn.Top = 7 * Program.border;
-            Data.TextIn.Left = Program.border;
-            Data.TextIn.Height = (Program.Tabs.Height - 15 * Program.border) / 2;
-            Data.TextIn.Width = Program.Tabs.Width - 4 * Program.border;
-            Data.TextOut.Top = Data.TextIn.Bottom + Program.border;
-            Data.TextOut.Left = Program.border;
+            Data.WrdLen.Width = 20 * MainForm.border;
+            Data.BtnClose.Top = MainForm.border;
+            Data.BtnClose.Width = 20 * MainForm.border;
+            Data.BtnClose.Height = 5 * MainForm.border;
+            Data.BtnClose.Left = Program.MainTab.Width - Data.BtnClose.Width - MainForm.border;
+            Data.TextIn.Top = 7 * MainForm.border;
+            Data.TextIn.Left = MainForm.border;
+            Data.TextIn.Height = (Program.Tabs.Height - 15 * MainForm.border) / 2;
+            Data.TextIn.Width = Program.Tabs.Width - 4 * MainForm.border;
+            Data.TextOut.Top = Data.TextIn.Bottom + MainForm.border;
+            Data.TextOut.Left = MainForm.border;
             Data.TextOut.Height = Data.TextIn.Height;
             Data.TextOut.Width = Data.TextIn.Width;
         }

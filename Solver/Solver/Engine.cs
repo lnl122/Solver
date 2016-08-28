@@ -36,7 +36,7 @@ namespace Solver
             public int bonuses;
             public string[] sector;
             public string[] bonus;
-            public List<string> ursl;
+            public List<string> urls;
             public string formlevelid;
             public string formlevelnumber;
             public DateTime dt;
@@ -337,8 +337,8 @@ namespace Solver
             lev.sector[0] = "";
             lev.bonus = new string[1];
             lev.bonus[0] = "";
-            lev.ursl = new List<string>();
-            lev.ursl.Add("http://d2.endata.cx/data/games/24889/test_pic_1_16.jpg");
+            lev.urls = new List<string>();
+            lev.urls.Add("http://d2.endata.cx/data/games/24889/test_pic_1_16.jpg");
             lev.dt = DateTime.Now;
             lev.formlevelid = "";
             lev.formlevelnumber = "";
@@ -364,7 +364,7 @@ namespace Solver
                 }
 
                 lev.text = GetLvlText(lev.page);
-                lev.ursl = GetLvlUrls(lev.page);
+                lev.urls = GetLvlUrls(lev.page);
                 lev.dt = DateTime.Now;
                 L[i] = lev;
             }

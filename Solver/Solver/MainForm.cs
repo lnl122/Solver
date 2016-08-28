@@ -13,15 +13,15 @@ namespace Solver
 {
     class MainForm
     {
-        public Form MF;         // форму объявим глобально
-        public TabControl Tabs; // глобальный Таб - тоже
+        public static Form MF;         // форму объявим глобально
+        public static TabControl Tabs; // глобальный Таб - тоже
 
         // элементы формы
-        private static TabPage MainTab;
+        public static TabPage MainTab;
         private static Button BtnUser;
         private static Button BtnGame;
         private static Button BtnSolve;
-        private static ListBox LvlList;
+        public static ListBox LvlList;
         private static TextBox LvlText;
         private static ComboBox gChoice;
         public static TextBox tbGname;
@@ -55,7 +55,7 @@ namespace Solver
             if (LvlList.Items.Count != 1) {
                 int newlvl = LvlList.SelectedIndex;
                 string tt = "";
-                foreach (string s1 in Engine.L[newlvl].ursl) { tt = tt + s1 + "\r\n"; }
+                foreach (string s1 in Engine.L[newlvl].urls) { tt = tt + s1 + "\r\n"; }
                 if (tt != "") { tt = tt + "__________________________________________\r\n"; }
                 LvlText.Text = tt + Engine.L[newlvl].text;
             }
@@ -215,7 +215,7 @@ namespace Solver
             {
                 LvlList.SelectedIndex = 1;
                 string tt = "";
-                foreach(string s1 in Engine.L[1].ursl) { tt = tt + s1 + "\r\n"; }
+                foreach(string s1 in Engine.L[1].urls) { tt = tt + s1 + "\r\n"; }
                 if (tt != "") { tt = tt + "__________________________________________\r\n"; }
                 LvlText.Text = tt + Engine.L[1].text;
             }
@@ -263,32 +263,71 @@ namespace Solver
             MainTab.Controls.Add(gChoice);
             BtnSolve = new Button();
             BtnSolve.Text = "Запустить решалку";
-            //BtnSolve.Click += new EventHandler(Event_SolveLevel);
+            BtnSolve.Click += new EventHandler(Event_SolveLevel);
             MainTab.Controls.Add(BtnSolve);
 
             Event_MainFormChangeSize(null, null);
         }
 
-        
-                public static string[,] actions = {
-                    //{ "Решать самостоятельно",      "manual" },
-                    //{ "Расчленёнки",                    "raschl" },
-                    { "Олимпийки картинками (img+ass)", "img_assoc"},
-                    { "Картинки - только решить",       "image"},
-                    { "Ассоциации для олимпиек",        "assoc"}
-                    //{ "* Картинки + ассоциации *",      "picture_association"},
-                    //{ "Картинки + логогрифы СОН-СЛОН",  "logogrif"},
-                    //{ "Картинки + метаграммы КОТ-КИТ",  "metagramm"},
-                    //{ "Картинки + гибриды карТОНус",    "gybrid"},
-                    //{ "* Кубрая *",                     "kubray"},
-                    //{ "Гапоифика - названия книг",      "gapoifika_books"}
-
-                    };
-        
-        public static void NewAssoc()
+        public static void Event_SolveLevel(object sender, EventArgs e)
         {
+           string type = actions[gChoice.SelectedIndex, 1];
 
+            if (type == "image")
+            {
+                if (Engine.L[LvlList.SelectedIndex].urls.Count == 0)
+                {
+                    System.Windows.Forms.MessageBox.Show("В этом уровне нет ссылок на картинки");
+                    return;
+                }
+                var R1 = new Picture(Engine.L[LvlList.SelectedIndex], "only_image");
+                //var R2 = new Assoc(Engine.L[LvlList.SelectedIndex]);
+            }
+
+            //if (type == "raschl")
+            //{
+            //    var R1 = new Raschl(LvlList.SelectedIndex, LvlText.Text);
+            //}
+            //if (type == "picture")
+            //{
+            //    var R1 = new Picture(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+            //}
+            //if (type == "picture_association")
+            //{
+            //    var R1 = new Association(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+            //}
+            /*if (type == "logogrif")
+            {
+                var R1 = new Logogrif(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+            }
+            if (type == "metagramm")
+            {
+                var R1 = new Metagramm(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+            }
+            if (type == "gybrid")
+            {
+                var R1 = new Gybrid(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+            }
+            if (type == "gapoifika_books")
+            {
+                var R1 = new GapoifikaBooks(LvlList.SelectedIndex, LvlText.Text);
+            }*/
+            //
         }
+        public static string[,] actions = {
+            //{ "Решать самостоятельно",      "manual" },
+            //{ "Расчленёнки",                    "raschl" },
+            { "Олимпийки картинками (img+ass)", "img_assoc"},
+            { "Картинки - только решить",       "image"},
+            { "Ассоциации для олимпиек",        "assoc"}
+            //{ "* Картинки + ассоциации *",      "picture_association"},
+            //{ "Картинки + логогрифы СОН-СЛОН",  "logogrif"},
+            //{ "Картинки + метаграммы КОТ-КИТ",  "metagramm"},
+            //{ "Картинки + гибриды карТОНус",    "gybrid"},
+            //{ "* Кубрая *",                     "kubray"},
+            //{ "Гапоифика - названия книг",      "gapoifika_books"}
+
+            };
 
         // ивент на кнопку логона
         // логин и пасс сохраняем в реестре

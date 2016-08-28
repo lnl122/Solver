@@ -15,112 +15,13 @@ namespace Solver
 {
     class Program
     {
+        public static bool isDebug = true;
 
         //public static int rnd_min = 800;//1300;
         //public static int rnd_max = 1500;//3300;
         //public static bool input_busy = false;
-        
-        // получаем строку с версиями установленных .net
-        private static string GetVersionDotNetFromRegistry()
-        {
-            string res = "";
-            using (RegistryKey ndpKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\"))
-            {
-                foreach (string versionKeyName in ndpKey.GetSubKeyNames())
-                {
-                    if (versionKeyName.StartsWith("v"))
-                    {
-                        res = res + versionKeyName + " ";
-                    }
-                }
-            }
-            using (RegistryKey ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
-            {
-                if (ndpKey != null && ndpKey.GetValue("Release") != null)
-                {
-                    int releaseKey = (int)ndpKey.GetValue("Release");
-                    if (releaseKey >= 393295) { res = res + " v4.6"; }
-                    else
-                    {
-                        if ((releaseKey >= 379893)) { res = res + " v4.5.2"; }
-                        else
-                        {
-                            if ((releaseKey >= 378675)) { res = res + " v4.5.1"; }
-                            else
-                            {
-                                if ((releaseKey >= 378389)) { res = res + " v4.5"; }
-                            }
-                        }
-                    }
-                }
-            }
-            return res.Trim();
-        }
-        // получаем строку с версией MS Word
-        private static string GetVersionMicrosoftWord()
-        {
-            try
-            {
-                var WordApp = new Microsoft.Office.Interop.Word.Application();
-                string s1 = WordApp.Version;
-                WordApp.Quit();
-                return s1;
-            }
-            catch
-            {
-                return "";
-            }
-        }
-        // проверяем наличие, настройки и также работу всех необходимых компонент, ведем лог
-        private static bool CheckComponents()
-        {
-            // .NET
-            string DotNetVersions = GetVersionDotNetFromRegistry();
-            Log.Write("check Найденные версии .NET: " + DotNetVersions);
-            if (DotNetVersions.IndexOf("v2.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v2.0"); return false; }
-            if (DotNetVersions.IndexOf("v3.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v3.0"); return false; }
-            if (DotNetVersions.IndexOf("v4.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v4.0"); return false; }
-            if ((DotNetVersions.IndexOf("v4.5") == -1) && (DotNetVersions.IndexOf("v4.6") == -1)) { Log.Write("check ERROR: Отсутствует .NET v4.5 или v4.6"); return false; }
-            
-            // MS Word
-            string WordVersion = GetVersionMicrosoftWord();
-            if (WordVersion == "") { Log.Write("check ERROR: Отсутствует установленный Microsoft Word"); return false; }
-            int ii1 = 0;
-            if (Int32.TryParse(WordVersion.Substring(0, WordVersion.IndexOf(".")), out ii1))
-            {
-                if (ii1 <= 11) { Log.Write("check ERROR: Версия Microsoft Word ниже 11.0, необходим Microsoft Word 2007 или более новый"); return false; }
-            } else
-            {
-                Log.Write("check ERROR: Не удалось определить версию Microsoft Word"); return false;
-            }
-            Log.Write("check Найден Microsoft Word версии " + WordVersion);
-            try {
-                var testSC = new SpellChecker();
-                if(testSC.CheckOne("мама") && testSC.CheckOne("мыла") && testSC.CheckOne("раму"))
-                {
-                    Log.Write("check Проверка орфографии установлена");
-                }
-            } catch
-            {
-                Log.Write("ERROR: Не удалось запустить проверку орфографии, или же проверка русского языка не установлена.."); return false;
-            }
 
-            // проверка открытия web-ресурсов
-            WebClient wc1 = null;
-            try { wc1 = new WebClient(); }                                  catch { Log.Write("check ERROR: Не удалось создать объект WebClient");      return false; }
-            string re1 = "";
-            try { re1 = wc1.DownloadString("http://image.google.com/"); }   catch { Log.Write("check ERROR: http://image.google.com/ не открывается");  return false; }
-            try { re1 = wc1.DownloadString("http://game.en.cx/"); }         catch { Log.Write("check ERROR: http://game.en.cx/ не открывается");        return false; }
-            //try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log.Write("check ERROR: http://jpegshare.net/ не открывается");     return false; }
-            //try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log.Write("check ERROR: http://ipic.su/ не открывается");           return false; }
-            try { re1 = wc1.DownloadString("http://goldlit.ru/"); }         catch { Log.Write("check ERROR: http://goldlit.ru/ не открывается");        return false; }
-            try { re1 = wc1.DownloadString("http://sociation.org/"); }      catch { Log.Write("check ERROR: http://sociation.org/ не открывается");     return false; }
-            try { re1 = wc1.DownloadString("https://ru.wiktionary.org/"); } catch { Log.Write("check ERROR: https://ru.wiktionary.org/ не открывается"); return false; }
-            Log.Write("check Все необходимые web-ресурсы открываются успешно");
 
-            // все проверки пройдены
-            return true;
-        }
 
 
 
@@ -157,7 +58,7 @@ namespace Solver
         //public static GameSt dGame = new GameSt();
         //public static MainTabSt GameTab = new MainTabSt();
 
-        //public enum prot { none, begin1, begin2, begin3, end1, end2, end3 };
+        //
 
 
         /*public static List<Program.words> words_to_engine(List<Program.words> q, string s)
@@ -187,54 +88,6 @@ namespace Solver
             }
             Program.input_busy = false;
             return w;
-        }*/
-
-        /*public static string get_game_page(string url)
-        {
-            string ps = "";
-            HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
-            //getRequest.Headers.Add("Accept-Language", "ru-ru");
-            //getRequest.Headers.Add("Content-Language", "ru-ru");
-            //getRequest.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1";
-            getRequest.CookieContainer = dGame.game_cCont;
-            WebResponse getResponse = getRequest.GetResponse();
-            using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
-            {
-                ps = sr.ReadToEnd();
-            }
-            return ps;
-        }*/
-        /*public static string parse_level_text(string t1)
-        {
-            t1 = t1.Substring(t1.IndexOf("<ul class=\"section level\">"));
-            t1 = t1.Substring(t1.IndexOf("</ul>"));
-            t1 = t1.Replace("<br/>", "\r\n").Replace("<div class=\"spacer\"></div>", "").Replace("<h3 class=\"color_bonus\">", "").Replace("<!-- container -->", "").Replace("</body>", "").Replace("</html>", "").Replace("</ul><!--end level-->", "").Replace("<p>", "").Replace("</p>", "").Replace("<h3 class=\"color_correct\">", "").Replace("<h3>", "").Replace("</h3>", "");
-            string t2 = "";
-            int ii1 = 0;
-            int ii2 = 0;
-            bool fl = true;
-            while (fl)
-            {
-                fl = false;
-                ii1 = t1.IndexOf("<p"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
-                ii1 = t1.IndexOf("<span"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
-                ii1 = t1.IndexOf("<strong"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
-                ii1 = t1.IndexOf("<script"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf("</script>"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 9); }
-                ii1 = t1.IndexOf("<!--"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf("-->"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 3); }
-                ii1 = t1.IndexOf("//<![CDATA["); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf("//]]>"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 5); }
-                ii1 = t1.IndexOf("<h3"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
-                ii1 = t1.IndexOf("<div"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
-                ii1 = t1.IndexOf("<a"); if (ii1 != -1) { fl = true; t2 = t1.Substring(ii1); ii2 = t2.IndexOf(">"); t1 = t1.Substring(0, ii1) + "\r\n" + t2.Substring(ii2 + 1); }
-            }
-            //<span class="color_sec">(completed, award 1 minute)</span>
-            t1 = t1.Replace("</a>", "\r\n").Replace("<br />", "\r\n").Replace("<u>", "").Replace("</u>", "").Replace("<i>", "").Replace("</i>", "").Replace("<b>", "").Replace("</b>", "").Replace("</strong>", "\r\n").Replace("</span>", "\r\n").Replace("</p>", "\r\n").Replace("&nbsp;", " ").Replace("<br>", "\r\n").Replace("</div>", "\r\n");
-            t1 = t1.Replace("\t", " ").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n");
-            t1 = t1.Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ").Replace("  ", " ");
-            t1 = t1.Replace("\r\n ", "\r\n").Replace(" \r\n", "\r\n").Replace("\r ", "\r").Replace(" \r", "\r").Replace("\n ", "\n").Replace(" \n", "\n");
-            t1 = t1.Replace("\r\r", "\r").Replace("\r\r", "\r").Replace("\n\n", "\n").Replace("\n\n", "\n").Replace("\r\r", "\r").Replace("\r\r", "\r").Replace("\n\n", "\n").Replace("\n\n", "\n");
-            t1 = t1.Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n").Replace("\r\n\r\n\r\n", "\r\n\r\n");
-            t1 = t1.Replace("\r\n)\r\n", ")\r\n");
-            return t1;
         }*/
 
         /*public static string set_word_protect(string v, int num, Program.prot p)
@@ -316,41 +169,110 @@ namespace Solver
         return false;
     }*/
 
-        /*public static void Event_SolveLevel(object sender, EventArgs e)
+        // получаем строку с версиями установленных .net
+        private static string GetVersionDotNetFromRegistry()
         {
-            string type = get_task_type_by_name(gChoice.SelectedItem.ToString());
-            if (type == "raschl")
+            string res = "";
+            using (RegistryKey ndpKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\"))
             {
-                var R1 = new Raschl(LvlList.SelectedIndex, LvlText.Text);
+                foreach (string versionKeyName in ndpKey.GetSubKeyNames())
+                {
+                    if (versionKeyName.StartsWith("v"))
+                    {
+                        res = res + versionKeyName + " ";
+                    }
+                }
             }
-            if (type == "picture")
+            using (RegistryKey ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
             {
-                var R1 = new Picture(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+                if (ndpKey != null && ndpKey.GetValue("Release") != null)
+                {
+                    int releaseKey = (int)ndpKey.GetValue("Release");
+                    if (releaseKey >= 393295) { res = res + " v4.6"; }
+                    else
+                    {
+                        if ((releaseKey >= 379893)) { res = res + " v4.5.2"; }
+                        else
+                        {
+                            if ((releaseKey >= 378675)) { res = res + " v4.5.1"; }
+                            else
+                            {
+                                if ((releaseKey >= 378389)) { res = res + " v4.5"; }
+                            }
+                        }
+                    }
+                }
             }
-            //if (type == "picture_association")
-            //{
-            //    var R1 = new Association(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
-            //}
-            if (type == "logogrif")
+            return res.Trim();
+        }
+        // получаем строку с версией MS Word
+        private static string GetVersionMicrosoftWord()
+        {
+            try
             {
-                var R1 = new Logogrif(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+                var WordApp = new Microsoft.Office.Interop.Word.Application();
+                string s1 = WordApp.Version;
+                WordApp.Quit();
+                return s1;
             }
-            if (type == "metagramm")
+            catch
             {
-                var R1 = new Metagramm(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
+                return "";
             }
-            if (type == "gybrid")
-            {
-                var R1 = new Gybrid(LvlList.SelectedIndex, get_list_of_urls_from_text(LvlText.Text.ToString()));
-            }
-            if (type == "gapoifika_books")
-            {
-                var R1 = new GapoifikaBooks(LvlList.SelectedIndex, LvlText.Text);
-            }
-            //
-        }*/
+        }
+        // проверяем наличие, настройки и также работу всех необходимых компонент, ведем лог
+        private static bool CheckComponents()
+        {
+            // .NET
+            string DotNetVersions = GetVersionDotNetFromRegistry();
+            Log.Write("check Найденные версии .NET: " + DotNetVersions);
+            if (DotNetVersions.IndexOf("v2.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v2.0"); return false; }
+            if (DotNetVersions.IndexOf("v3.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v3.0"); return false; }
+            if (DotNetVersions.IndexOf("v4.0") == -1) { Log.Write("check ERROR: Отсутствует .NET v4.0"); return false; }
+            if ((DotNetVersions.IndexOf("v4.5") == -1) && (DotNetVersions.IndexOf("v4.6") == -1)) { Log.Write("check ERROR: Отсутствует .NET v4.5 или v4.6"); return false; }
 
+            // MS Word
+            string WordVersion = GetVersionMicrosoftWord();
+            if (WordVersion == "") { Log.Write("check ERROR: Отсутствует установленный Microsoft Word"); return false; }
+            int ii1 = 0;
+            if (Int32.TryParse(WordVersion.Substring(0, WordVersion.IndexOf(".")), out ii1))
+            {
+                if (ii1 <= 11) { Log.Write("check ERROR: Версия Microsoft Word ниже 11.0, необходим Microsoft Word 2007 или более новый"); return false; }
+            }
+            else
+            {
+                Log.Write("check ERROR: Не удалось определить версию Microsoft Word"); return false;
+            }
+            Log.Write("check Найден Microsoft Word версии " + WordVersion);
+            try
+            {
+                var testSC = new SpellChecker();
+                if (testSC.CheckOne("мама") && testSC.CheckOne("мыла") && testSC.CheckOne("раму"))
+                {
+                    Log.Write("check Проверка орфографии установлена");
+                }
+            }
+            catch
+            {
+                Log.Write("ERROR: Не удалось запустить проверку орфографии, или же проверка русского языка не установлена.."); return false;
+            }
 
+            // проверка открытия web-ресурсов
+            WebClient wc1 = null;
+            try { wc1 = new WebClient(); } catch { Log.Write("check ERROR: Не удалось создать объект WebClient"); return false; }
+            string re1 = "";
+            try { re1 = wc1.DownloadString("http://image.google.com/"); } catch { Log.Write("check ERROR: http://image.google.com/ не открывается"); return false; }
+            try { re1 = wc1.DownloadString("http://game.en.cx/"); } catch { Log.Write("check ERROR: http://game.en.cx/ не открывается"); return false; }
+            //try { re1 = wc1.DownloadString("http://jpegshare.net/"); }      catch { Log.Write("check ERROR: http://jpegshare.net/ не открывается");     return false; }
+            //try { re1 = wc1.DownloadString("http://ipic.su/"); }            catch { Log.Write("check ERROR: http://ipic.su/ не открывается");           return false; }
+            try { re1 = wc1.DownloadString("http://goldlit.ru/"); } catch { Log.Write("check ERROR: http://goldlit.ru/ не открывается"); return false; }
+            try { re1 = wc1.DownloadString("http://sociation.org/"); } catch { Log.Write("check ERROR: http://sociation.org/ не открывается"); return false; }
+            try { re1 = wc1.DownloadString("https://ru.wiktionary.org/"); } catch { Log.Write("check ERROR: https://ru.wiktionary.org/ не открывается"); return false; }
+            Log.Write("check Все необходимые web-ресурсы открываются успешно");
+
+            // все проверки пройдены
+            return true;
+        }
         // инициализируем наши объекты
         public static void InitComponents()
         {
@@ -391,8 +313,21 @@ namespace Solver
             InitComponents();
 
             // создаём форму, передаём её управление
-            var MF = new MainForm();
-            System.Windows.Forms.Application.Run(MF.MF);
+            MainForm MF1 = new MainForm();
+            /*
+            if (isDebug)
+            {
+                string pageSource = Engine.Logon("http://game.en.cx/Login.aspx", "Liteman", "Qwerty123");
+                Engine.SetId("157721", "Liteman", "Qwerty123", "24889", "demo.en.cx", 11);
+                Engine.GetLevels();
+                MainForm.LvlList.Items.Clear();
+                foreach (Engine.level lev in Engine.L)
+                {
+                    MainForm.LvlList.Items.Add(lev.number + ": " + lev.name);
+                }
+            }
+            */
+            System.Windows.Forms.Application.Run(MainForm.MF);
 
             //var tt = Upload.UploadFile_saveimgru(@"C:\1\34\pics\g24889_l2_p1_n1.jpg");
 

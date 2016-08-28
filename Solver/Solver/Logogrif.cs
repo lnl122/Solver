@@ -368,69 +368,69 @@ namespace Solver
         }
         private void Event_Logogrif_ChangeSize(object sender, EventArgs e)
         {
-            Data.BtnSolve.Top = Program.border;
-            Data.BtnSolve.Left = Program.border;
-            Data.BtnSolve.Width = 20 * Program.border;
-            Data.BtnSolve.Height = 5 * Program.border;
-            Data.Auto.Top = Program.border;
-            Data.Auto.Left = Data.BtnSolve.Right + 2 * Program.border;
-            Data.BtnClose.Top = Program.border;
-            Data.BtnClose.Width = 20 * Program.border;
-            Data.BtnClose.Height = 5 * Program.border;
-            Data.BtnClose.Left = Program.MainTab.Width - Data.BtnClose.Width - Program.border;
-            Data.pics_list.Top = Data.BtnSolve.Bottom + 2 * Program.border;
-            Data.pics_list.Left = Program.border;
-            Data.pics_list.Width = Program.MainTab.Width / 3 - 2 * Program.border;
-            Data.pics_list.Height = 30 * Program.border;
-            Data.lb_prot.Top = Data.pics_list.Bottom + 2 * Program.border;
-            Data.lb_prot.Left = Program.border;
-            Data.lb_prot.Width = 25 * Program.border;
-            Data.lb_prot.Height = 5 * Program.border;
-            Data.lb_init.Top = Data.lb_prot.Bottom + Program.border;
-            Data.lb_init.Left = Program.border;
+            Data.BtnSolve.Top = MainForm.border;
+            Data.BtnSolve.Left = MainForm.border;
+            Data.BtnSolve.Width = 20 * MainForm.border;
+            Data.BtnSolve.Height = 5 * MainForm.border;
+            Data.Auto.Top = MainForm.border;
+            Data.Auto.Left = Data.BtnSolve.Right + 2 * MainForm.border;
+            Data.BtnClose.Top = MainForm.border;
+            Data.BtnClose.Width = 20 * MainForm.border;
+            Data.BtnClose.Height = 5 * MainForm.border;
+            Data.BtnClose.Left = Program.MainTab.Width - Data.BtnClose.Width - MainForm.border;
+            Data.pics_list.Top = Data.BtnSolve.Bottom + 2 * MainForm.border;
+            Data.pics_list.Left = MainForm.border;
+            Data.pics_list.Width = Program.MainTab.Width / 3 - 2 * MainForm.border;
+            Data.pics_list.Height = 30 * MainForm.border;
+            Data.lb_prot.Top = Data.pics_list.Bottom + 2 * MainForm.border;
+            Data.lb_prot.Left = MainForm.border;
+            Data.lb_prot.Width = 25 * MainForm.border;
+            Data.lb_prot.Height = 5 * MainForm.border;
+            Data.lb_init.Top = Data.lb_prot.Bottom + MainForm.border;
+            Data.lb_init.Left = MainForm.border;
             Data.lb_init.Width = Data.lb_prot.Width;
             Data.lb_init.Height = Data.lb_prot.Height;
-            Data.lb_str.Top = Data.lb_init.Bottom + Program.border;
-            Data.lb_str.Left = Program.border;
+            Data.lb_str.Top = Data.lb_init.Bottom + MainForm.border;
+            Data.lb_str.Left = MainForm.border;
             Data.lb_str.Width = Data.lb_prot.Width;
             Data.lb_str.Height = Data.lb_prot.Height;
-            Data.lb_col.Top = Data.lb_str.Bottom + Program.border;
-            Data.lb_col.Left = Program.border;
+            Data.lb_col.Top = Data.lb_str.Bottom + MainForm.border;
+            Data.lb_col.Left = MainForm.border;
             Data.lb_col.Width = Data.lb_prot.Width;
             Data.lb_col.Height = Data.lb_prot.Height;
             Data.cb_protect.Top = Data.lb_prot.Top;
-            Data.cb_protect.Left = Data.lb_prot.Right + Program.border;
+            Data.cb_protect.Left = Data.lb_prot.Right + MainForm.border;
             Data.cb_protect.Width = Data.lb_prot.Width;
             Data.cb_protect.Height = Data.lb_prot.Height;
             Data.init_num.Top = Data.lb_init.Top;
-            Data.init_num.Left = Data.lb_prot.Right + Program.border;
+            Data.init_num.Left = Data.lb_prot.Right + MainForm.border;
             Data.init_num.Width = Data.lb_prot.Width;
             Data.init_num.Height = Data.lb_prot.Height;
             Data.cb_str.Top = Data.lb_str.Top;
-            Data.cb_str.Left = Data.lb_prot.Right + Program.border;
+            Data.cb_str.Left = Data.lb_prot.Right + MainForm.border;
             Data.cb_str.Width = Data.lb_prot.Width;
             Data.cb_str.Height = Data.lb_prot.Height;
             Data.cb_col.Top = Data.lb_col.Top;
-            Data.cb_col.Left = Data.lb_prot.Right + Program.border;
+            Data.cb_col.Left = Data.lb_prot.Right + MainForm.border;
             Data.cb_col.Width = Data.lb_prot.Width;
             Data.cb_col.Height = Data.lb_prot.Height;
             int mm = Data.cb_col.Right;
             if (Data.pics_list.Right > mm) { mm = Data.pics_list.Right; }
-            //Data.img.Height = Program.MainTab.Height - Data.pics_list.Top - 1 * Program.border;
+            //Data.img.Height = Program.MainTab.Height - Data.pics_list.Top - 1 * MainForm.border;
             Data.img.Top = Data.pics_list.Top;
-            Data.img.Left = mm + 2 * Program.border;
-            Data.img.Width = Program.MainTab.Width - mm - 3 * Program.border;
+            Data.img.Left = mm + 2 * MainForm.border;
+            Data.img.Width = Program.MainTab.Width - mm - 3 * MainForm.border;
             Data.TextOut.Left = Data.img.Left;
             Data.TextOut.Width = Data.img.Width;
             if (Data.Tab.Text.Substring(Data.Tab.Text.Length - 1, 1) == "#")
             {
-                Data.img.Height = (Program.MainTab.Height - Data.pics_list.Top - 1 * Program.border) / 2 - Program.border;
+                Data.img.Height = (Program.MainTab.Height - Data.pics_list.Top - 1 * MainForm.border) / 2 - MainForm.border;
                 Data.TextOut.Height = Data.img.Height;
-                Data.TextOut.Top = Data.img.Bottom + Program.border;
+                Data.TextOut.Top = Data.img.Bottom + MainForm.border;
             }
             else
             {
-                Data.img.Height = Program.MainTab.Height - Data.pics_list.Top - 1 * Program.border;
+                Data.img.Height = Program.MainTab.Height - Data.pics_list.Top - 1 * MainForm.border;
                 Data.TextOut.Top = Data.img.Top;
                 Data.TextOut.Height = Data.img.Height;
             }
