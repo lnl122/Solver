@@ -150,8 +150,8 @@ namespace Solver
         {
             public Engine.level lvl;
             public string type;
-            public BigPicture[] pics;
-            public SmallPicture[] imgs;
+            public List<BigPicture> pics;
+            public List<SmallPicture> imgs;
             public prot prot;
 
             public TabPage Tab;
@@ -176,7 +176,7 @@ namespace Solver
         public Picture(Engine.level lvl11, string type11)//для только решения картинок
         {
             Data.lvl = lvl11;
-            Data.type = type11;
+            Data.type = type11; // текстовое описание того, что нужно делать дальше (логогриф/гибрид/олимпийка)
 
             Data.Tab = new TabPage();
             Data.Tab.Text = Data.lvl.number.ToString() + " : " + "Картинки/" + type11;
@@ -188,26 +188,28 @@ namespace Solver
             Data.BtnClose.Text = "Закрыть";
             //Data.BtnClose.Click += new EventHandler(Event_Picture_Close_Click);
             Data.Tab.Controls.Add(Data.BtnClose);
-            Data.pics = new BigPicture[Data.lvl.urls.Count];
-            for (int i = 0; i < Data.pics.Length; i++)
+            Data.pics = new List<BigPicture>();//[Data.lvl.urls.Count];
+            for (int i = 0; i < Data.lvl.urls.Count; i++)
             {
-                Data.pics[i].url = Data.lvl.urls[i];
-                Data.pics[i].str = 0;
-                Data.pics[i].col = 0;
-                Data.pics[i].cnt = i;
-                Data.pics[i].init_num = 0;
+                BigPicture tempBP = new BigPicture();
+                tempBP.url = Data.lvl.urls[i];
+                tempBP.str = 0;
+                tempBP.col = 0;
+                tempBP.cnt = i;
+                tempBP.init_num = 1;
+                Data.pics.Add(tempBP);
             }
             Data.prot = prot.none;
             Data.Twins = new CheckBox();
             Data.Twins.Text = "одинаковые размеры";
             Data.Twins.Checked = false;
+            Data.Tab.Controls.Add(Data.Twins);
             //Data.Twins.ValueChanged += new EventHandler(Event_Picture_Twins_Change);
             Data.init_num = new NumericUpDown();
             Data.init_num.Minimum = 0;
             Data.init_num.Maximum = 257;
             Data.init_num.Increment = 1;
             Data.init_num.Value = 1;
-            Data.pics[0].init_num = Convert.ToInt32(Data.init_num.Value);
             //Data.init_num.ValueChanged += new EventHandler(Event_Picture_InitNum_Change);
             Data.Tab.Controls.Add(Data.init_num);
             Data.pics_list = new ListBox();
@@ -270,11 +272,13 @@ namespace Solver
             Data.lb_prot.Text = "Защита:";
             Data.Tab.Controls.Add(Data.lb_prot);
             Data.img = new PictureBox();
-            for (int i = 0; i < Data.pics.Length; i++)
+            for (int i = 0; i < Data.pics.Count; i++)
             {
                 Data.img.Load(Data.pics[i].url);
-                Data.pics[i].img = Data.img.Image;
-                Data.pics[i].bmp = new Bitmap(Data.pics[i].img);
+                BigPicture tempBP = Data.pics[i];
+                tempBP.img = Data.img.Image;
+                tempBP.bmp = new Bitmap(Data.pics[i].img);
+                Data.pics[i] = tempBP;
             }
             Data.img.SizeMode = PictureBoxSizeMode.StretchImage;
             Data.Tab.Controls.Add(Data.img);
